@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "Service": {
+      "title": "Service",
+      "description": "On-site computer diagnostic and repair service",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "key": { "type": "string" },
+        "title": { "type": "string" },
+        "shortDesc": { "type": "string" },
+        "fullDesc": { "type": "string" },
+        "priceStarting": { "type": "string" },
+        "priceNote": { "type": "string" },
+        "turnaround": { "type": "string" },
+        "icon": { "type": "string" },
+        "status": { "type": "string", "enum": ["published", "draft", "archived"] },
+        "order": { "type": "number" },
+        "workflow": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "title", "status", "createdAt", "updatedAt"]
+    },
+    "Request": {
+      "title": "Service Request",
+      "description": "Customer computer repair triage request",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "area": { "type": "string" },
+        "address": { "type": "string" },
+        "deviceType": { "type": "string" },
+        "problemDescription": { "type": "string" },
+        "preferredTime": { "type": "string" },
+        "urgency": { "type": "string" },
+        "containsImportantData": { "type": "string" },
+        "status": { "type": "string" },
+        "adminNotes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "area", "status", "createdAt", "updatedAt"]
+    },
+    "Booking": {
+      "title": "Service Booking",
+      "description": "Scheduled technician on-site appointment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "area": { "type": "string" },
+        "address": { "type": "string" },
+        "serviceKey": { "type": "string" },
+        "serviceTitle": { "type": "string" },
+        "preferredDate": { "type": "string" },
+        "preferredTime": { "type": "string" },
+        "urgency": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "customerName", "phone", "area", "status", "createdAt", "updatedAt"]
+    },
+    "Setting": {
+      "title": "Site Settings",
+      "description": "Business information and technician credentials",
+      "type": "object",
+      "properties": {
+        "phoneNumber": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "serviceAreaCity": { "type": "string" },
+        "businessHours": { "type": "string" },
+        "technicianName": { "type": "string" },
+        "technicianTitle": { "type": "string" },
+        "technicianInstitution": { "type": "string" },
+        "technicianExperience": { "type": "string" },
+        "technicianBio": { "type": "string" },
+        "technicianPhoto": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["status", "createdAt", "updatedAt"]
+    },
+    "Inquiry": {
+      "title": "Lead Inquiry",
+      "description": "Contact form inquiry and customer lead with email notification telemetry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "email": { "type": "string" },
+        "area": { "type": "string" },
+        "subject": { "type": "string" },
+        "service": { "type": "string" },
+        "budget": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["NEW", "CONTACTED", "CONVERTED", "ARCHIVED"] },
+        "emailNotificationStatus": { "type": "string", "enum": ["sent", "failed", "activation_needed", "credentials_pending"] },
+        "emailNotificationSentTo": { "type": "string" },
+        "emailNotificationSentAt": { "type": "string" },
+        "emailNotificationProvider": { "type": "string", "enum": ["resend", "smtp", "formsubmit", "logged"] },
+        "emailNotificationError": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "fullName", "phone", "message", "emailNotificationStatus", "emailNotificationSentTo", "emailNotificationSentAt", "emailNotificationProvider", "createdAt"]
+    }
+  },
+  "firestore": {
+    "services": {
+      "entity": "Service",
+      "description": "Collection of all published and draft services"
+    },
+    "requests": {
+      "entity": "Request",
+      "description": "Customer triage problem submissions"
+    },
+    "bookings": {
+      "entity": "Booking",
+      "description": "Confirmed technician appointments"
+    },
+    "settings": {
+      "entity": "Setting",
+      "description": "Site-wide configuration and technician profile"
+    },
+    "inquiries": {
+      "entity": "Inquiry",
+      "description": "Contact form customer inquiries and lead submissions with email delivery telemetry"
+    }
+  }
+}

@@ -1,0 +1,471 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+    background-color: #110b07;
+    color: #fdfaf4;
+  }
+  
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* ==========================================================================
+   WOOD & PRECISION CRAFTSMANSHIP DESIGN SYSTEM
+   Deep Smoked Walnut, Polished Oak, Amber Gold & Brushed Brass Accents
+   ========================================================================== */
+
+/* Physical Chassis Panel (Heavy crafted walnut workbench frame) */
+.skeuo-panel, .wood-panel {
+  background: linear-gradient(180deg, #271a12 0%, #1e130c 50%, #150c07 100%);
+  border-top: 1px solid rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #0a0503;
+  border-left: 1px solid rgba(217, 119, 6, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(254, 215, 170, 0.14) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.8) inset;
+}
+
+/* Elevated Floating Modal / Dialog Surface */
+.skeuo-modal, .wood-modal {
+  background: linear-gradient(180deg, #2d1e15 0%, #20140d 50%, #160d08 100%);
+  border-top: 1px solid rgba(251, 191, 36, 0.35);
+  border-bottom: 3px solid #080402;
+  border-left: 1px solid rgba(217, 119, 6, 0.18);
+  border-right: 1px solid rgba(0, 0, 0, 0.8);
+  box-shadow: 
+    0 28px 70px -12px rgba(0, 0, 0, 0.95),
+    0 10px 25px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(254, 215, 170, 0.2) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.9) inset;
+}
+
+/* Physical Beveled Card (Layered Wood Workstation Module) */
+.skeuo-card, .wood-card {
+  background: linear-gradient(180deg, #2a1b12 0%, #1f130b 60%, #150c07 100%);
+  border-top: 1px solid rgba(245, 158, 11, 0.28);
+  border-bottom: 2px solid #0c0604;
+  border-left: 1px solid rgba(180, 83, 9, 0.18);
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.75),
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(254, 215, 170, 0.12) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.7) inset;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.skeuo-card:hover, .wood-card:hover {
+  background: linear-gradient(180deg, #332117 0%, #25170e 60%, #190f09 100%);
+  border-top-color: rgba(251, 191, 36, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 14px 30px -4px rgba(0, 0, 0, 0.88),
+    0 4px 10px rgba(0, 0, 0, 0.65),
+    0 1px 0 rgba(253, 230, 138, 0.28) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.7) inset;
+}
+
+/* Recessed / Inset Well (Carved into wood surface for inputs, screens, meters) */
+.skeuo-inset, .wood-inset {
+  background: linear-gradient(180deg, #0d0704 0%, #130b06 100%);
+  border-top: 1px solid #070302;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.12);
+  border-left: 1px solid #090402;
+  border-right: 1px solid rgba(245, 158, 11, 0.06);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.9),
+    inset 0 1px 2px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(254, 215, 170, 0.06);
+}
+
+/* Recessed Form Input / Textarea */
+.skeuo-input, .wood-input {
+  background: linear-gradient(180deg, #0e0805 0%, #150c07 100%);
+  border-top: 1px solid #090402;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.16);
+  border-left: 1px solid #0b0603;
+  border-right: 1px solid rgba(245, 158, 11, 0.08);
+  box-shadow: 
+    inset 0 2px 5px rgba(0, 0, 0, 0.9),
+    inset 0 1px 2px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(254, 215, 170, 0.06);
+  color: #fdfaf4;
+  transition: all 0.15s ease-in-out;
+}
+
+.skeuo-input:focus, .wood-input:focus {
+  outline: none;
+  border-top-color: #d97706;
+  border-bottom-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 
+    inset 0 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 0 2px rgba(245, 158, 11, 0.4),
+    0 0 15px rgba(217, 119, 6, 0.25);
+}
+
+/* Tactile Mechanical Hardware Button (Polished Dark Timber) */
+.skeuo-btn, .wood-btn {
+  background: linear-gradient(180deg, #3a2518 0%, #281910 45%, #1d110a 100%);
+  border-top: 1px solid rgba(254, 215, 170, 0.28);
+  border-left: 1px solid rgba(245, 158, 11, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+  border-bottom: 3px solid #0b0604;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.65),
+    0 1px 0 rgba(254, 215, 170, 0.22) inset;
+  transform: translateY(0);
+  transition: all 0.12s ease-out;
+  cursor: pointer;
+}
+
+.skeuo-btn:hover, .wood-btn:hover {
+  background: linear-gradient(180deg, #462d1d 0%, #301f14 45%, #23150d 100%);
+  border-top-color: rgba(254, 215, 170, 0.42);
+}
+
+.skeuo-btn:active, .wood-btn:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    inset 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+/* Primary Amber / Golden Wood Push Button */
+.skeuo-btn-primary, .wood-btn-primary {
+  background: linear-gradient(180deg, #f59e0b 0%, #d97706 45%, #b45309 100%);
+  border-top: 1px solid rgba(254, 240, 138, 0.6);
+  border-left: 1px solid rgba(251, 191, 36, 0.25);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 3px solid #78350f;
+  box-shadow: 
+    0 4px 14px rgba(217, 119, 6, 0.45),
+    0 2px 4px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.35) inset;
+  transform: translateY(0);
+  transition: all 0.12s ease-out;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.skeuo-btn-primary:hover, .wood-btn-primary:hover {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 45%, #d97706 100%);
+  box-shadow: 
+    0 6px 18px rgba(245, 158, 11, 0.55),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+.skeuo-btn-primary:active, .wood-btn-primary:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.85),
+    inset 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+
+/* Emerald Action Button (WhatsApp & Instant Dispatch) */
+.skeuo-btn-emerald {
+  background: linear-gradient(180deg, #10b981 0%, #059669 45%, #047857 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 3px solid #064e3b;
+  box-shadow: 
+    0 4px 14px rgba(16, 185, 129, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  transform: translateY(0);
+  transition: all 0.12s ease-out;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.skeuo-btn-emerald:hover {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 45%, #059669 100%);
+}
+
+.skeuo-btn-emerald:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.8),
+    inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Amber / Warning Tactile Button */
+.skeuo-btn-amber {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 45%, #d97706 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(0, 0, 0, 0.4);
+  border-bottom: 3px solid #78350f;
+  box-shadow: 
+    0 4px 14px rgba(245, 158, 11, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.35) inset;
+  transform: translateY(0);
+  transition: all 0.12s ease-out;
+  cursor: pointer;
+  color: #1c1007;
+}
+
+.skeuo-btn-amber:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+}
+
+/* Tactile Tab Selector (Hardware Rocker / Toggle Switch) */
+.skeuo-tab {
+  background: linear-gradient(180deg, #281910 0%, #1a100a 100%);
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+  border-bottom: 2px solid #0b0604;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+  transition: all 0.15s ease;
+  color: #e5d5c5;
+}
+
+.skeuo-tab.active,
+.skeuo-tab[data-state="active"] {
+  background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
+  border-top-color: rgba(254, 240, 138, 0.5);
+  border-bottom: 2px solid #78350f;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.35),
+    0 2px 8px rgba(217, 119, 6, 0.45);
+  color: #ffffff;
+}
+
+/* Stamped Brass Badge / Serial Plate */
+.skeuo-badge {
+  background: linear-gradient(180deg, #2a1b12 0%, #1a100a 100%);
+  border-top: 1px solid rgba(251, 191, 36, 0.3);
+  border-bottom: 1px solid #0a0503;
+  border-left: 1px solid rgba(217, 119, 6, 0.15);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 2px 5px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(254, 215, 170, 0.1) inset;
+  color: #fcd34d;
+}
+
+.skeuo-badge-emerald {
+  background: linear-gradient(180deg, rgba(6, 78, 59, 0.8) 0%, rgba(4, 47, 46, 0.9) 100%);
+  border-top: 1px solid rgba(52, 211, 153, 0.4);
+  border-bottom: 1px solid #022c22;
+  color: #6ee7b7;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.skeuo-badge-blue, .skeuo-badge-amber {
+  background: linear-gradient(180deg, rgba(146, 64, 14, 0.75) 0%, rgba(92, 38, 7, 0.88) 100%);
+  border-top: 1px solid rgba(251, 191, 36, 0.5);
+  border-bottom: 1px solid #451a03;
+  color: #fde68a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* Brushed Brass Hardware Screws & Fasteners */
+.skeuo-screw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #b45309 0%, #78350f 70%, #451a03 100%);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(254, 215, 170, 0.4);
+  position: relative;
+  display: inline-block;
+}
+
+.skeuo-screw::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 1px;
+  width: 8px;
+  height: 1.5px;
+  background: #1c0e06;
+  border-radius: 0.5px;
+  box-shadow: 0 0.5px 0 rgba(254, 215, 170, 0.2);
+}
+
+/* Physical Status LED Diodes */
+.skeuo-led-green, .skeuo-led-emerald {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 
+    0 0 8px #34d399,
+    0 0 2px #ffffff,
+    inset 0 1px 1px #a7f3d0;
+  display: inline-block;
+}
+
+.skeuo-led-blue, .skeuo-led-amber {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 
+    0 0 8px #fbbf24,
+    0 0 2px #ffffff,
+    inset 0 1px 1px #fde68a;
+  display: inline-block;
+}
+
+.skeuo-led-cyan {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e58b29;
+  box-shadow: 
+    0 0 8px #f59e0b,
+    0 0 2px #ffffff,
+    inset 0 1px 1px #fde68a;
+  display: inline-block;
+}
+
+/* Physical Engraved Double Groove Seam in Wood */
+.skeuo-groove {
+  height: 2px;
+  background: #0d0704;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.1);
+}
+
+/* Wood Data Table Container */
+.skeuo-table {
+  background: linear-gradient(180deg, #24170e 0%, #180f09 100%);
+  border-top: 1px solid rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #0a0503;
+  border-left: 1px solid rgba(180, 83, 9, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 
+    0 12px 28px -6px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(254, 215, 170, 0.1) inset;
+}
+
+/* Tactile Social Media Hardware Key */
+.skeuo-social-btn {
+  background: linear-gradient(180deg, #342115 0%, #24160d 50%, #1a0f08 100%);
+  border-top: 1px solid rgba(254, 215, 170, 0.28);
+  border-left: 1px solid rgba(245, 158, 11, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  border-bottom: 3px solid #0c0604;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.6),
+    0 1px 0 rgba(254, 215, 170, 0.16) inset;
+  transform: translateY(0);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  color: #e5d5c5;
+}
+
+.skeuo-social-btn:hover {
+  background: linear-gradient(180deg, #442b1b 0%, #2e1c11 50%, #21140b 100%);
+  border-top-color: rgba(254, 215, 170, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(254, 215, 170, 0.28) inset;
+  color: #fbbf24;
+}
+
+.skeuo-social-btn:active {
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    inset 0 2px 4px rgba(0, 0, 0, 0.65);
+}
+
+/* ==========================================================================
+   ENHANCED GLASS & SURFACE UTILITIES (Wood Polish & Smoked Glass)
+   ========================================================================== */
+
+.glass-panel {
+  background: linear-gradient(180deg, rgba(39, 26, 18, 0.92) 0%, rgba(26, 16, 11, 0.96) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #090503;
+  border-left: 1px solid rgba(180, 83, 9, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 
+    0 20px 50px -12px rgba(0, 0, 0, 0.85),
+    0 1px 0 rgba(254, 215, 170, 0.12) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.8) inset;
+}
+
+.glass-panel-elevated {
+  background: linear-gradient(180deg, rgba(46, 30, 20, 0.94) 0%, rgba(30, 19, 13, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(251, 191, 36, 0.4);
+  border-bottom: 2px solid #080402;
+  border-left: 1px solid rgba(217, 119, 6, 0.18);
+  border-right: 1px solid rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 25px 60px -12px rgba(0, 0, 0, 0.92),
+    0 1px 0 rgba(254, 215, 170, 0.22) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.85) inset;
+}
+
+.glass-card {
+  background: linear-gradient(180deg, rgba(40, 26, 18, 0.82) 0%, rgba(25, 16, 11, 0.92) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #0c0604;
+  border-left: 1px solid rgba(180, 83, 9, 0.12);
+  border-right: 1px solid rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.75),
+    0 1px 0 rgba(254, 215, 170, 0.1) inset;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  background: linear-gradient(180deg, rgba(50, 32, 22, 0.92) 0%, rgba(32, 20, 14, 0.97) 100%);
+  border-top-color: rgba(251, 191, 36, 0.55);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 16px 36px -10px rgba(0, 0, 0, 0.88),
+    0 1px 0 rgba(254, 215, 170, 0.25) inset;
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.4);
+}
+
+.glow-blue {
+  box-shadow: 0 0 25px -5px rgba(217, 119, 6, 0.35);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.35);
+}
+
+/* Custom Wood Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #110b07;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3d2618 0%, #24160d 100%);
+  border: 1px solid #140c07;
+  border-radius: 4px;
+  box-shadow: inset 0 1px 0 rgba(254, 215, 170, 0.15);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #533420 0%, #352014 100%);
+}

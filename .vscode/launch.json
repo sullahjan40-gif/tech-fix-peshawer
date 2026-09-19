@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge", // Change to "chrome" if you prefer Google Chrome
+      "request": "launch",
+      "name": "Launch Browser against localhost",
+      "url": "http://localhost:8080", // Change 8080 to match your local server port
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
