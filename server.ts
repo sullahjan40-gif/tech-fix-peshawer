@@ -2002,15 +2002,17 @@ function saveDb() {
 loadDb();
 NOTIFICATION_DESTINATION = getNotificationDestination();
 
-// Async Firestore overlay: loads persisted settings from Firestore and overlays them
-// on top of the local database.json defaults. This is what makes settings persist on Vercel.
+// Async Firestore overlay — tracked as a promise so API endpoints can await it.
+// This ELIMINATES the flash of wrong data (old phone/email for ~1 sec) on first load.
+let _firestoreReadyResolve: () => void;
+const firestoreReady: Promise<void> = new Promise(resolve => { _firestoreReadyResolve = resolve; });
+
 (async () => {
   try {
     const firestoreSettings = await loadSettingsFromFirestore();
     if (firestoreSettings && typeof firestoreSettings === 'object' && Object.keys(firestoreSettings).length > 0) {
       db.settings = { ...db.settings, ...firestoreSettings };
       NOTIFICATION_DESTINATION = getNotificationDestination();
-      // Re-sync env vars from Firestore settings
       if (db.settings.resendApiKey)       process.env.RESEND_API_KEY            = db.settings.resendApiKey;
       if (db.settings.resendFromEmail)    process.env.RESEND_FROM               = db.settings.resendFromEmail;
       if (db.settings.resendTargetEmail)  process.env.NOTIFICATION_TARGET_EMAIL = db.settings.resendTargetEmail;
@@ -2020,6 +2022,8 @@ NOTIFICATION_DESTINATION = getNotificationDestination();
     }
   } catch (err) {
     console.error('[FIRESTORE] Startup overlay error:', err);
+  } finally {
+    _firestoreReadyResolve!(); // always resolve so requests never hang
   }
 })();
 
@@ -2063,7 +2067,13 @@ app.get('/uploads/:filename', (req, res, next) => {
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Public Data API
-app.get('/api/data', (req, res) => {
+// Public Data API — awaits Firestore ready on first load so no wrong data flash
+app.get('/api/data', async (req, res) => {
+  // Wait for Firestore settings to be applied (only blocks on very first cold start request)
+  await Promise.race([
+    firestoreReady,
+    new Promise(resolve => setTimeout(resolve, 3000)) // max 3s wait, then serve anyway
+  ]);
   res.json({
     services: db.services.filter(s => s.status === 'active'),
     faqs: db.faqs,
