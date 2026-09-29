@@ -69,6 +69,7 @@ export function AdminInquiries({ inquiries, onRefresh }: AdminInquiriesProps) {
         : 'Tomorrow Morning (10:00 AM – 1:00 PM)';
       setConfirmSlotInput(defaultSlot);
       setTechnicianNoteInput(`Our technician has received your inquiry for ${selectedInquiry.service || selectedInquiry.subject} and is contacting you on WhatsApp to coordinate details.`);
+      setCustomerEmailInput(selectedInquiry.email || '');
       setIsConfirmOpen(false);
       setIsContactOpen(false);
       setLeadActionBanner(null);
@@ -76,26 +77,43 @@ export function AdminInquiries({ inquiries, onRefresh }: AdminInquiriesProps) {
   }, [selectedInquiry]);
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [customerEmailInput, setCustomerEmailInput] = useState('');
 
   const handleSendConfirmationEmailManual = async () => {
     if (!selectedInquiry || isSendingEmail) return;
+    const targetEmail = customerEmailInput.trim() || selectedInquiry.email || '';
+    if (!targetEmail) {
+      setLeadActionBanner({ type: 'error', message: 'No customer email address. Please enter an email above.' });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)) {
+      setLeadActionBanner({ type: 'error', message: `Invalid email address: "${targetEmail}". Please correct it before sending.` });
+      return;
+    }
+    const KNOWN_TYPOS = ['@gmil.com', '@gmai.com', '@gmial.com', '@gnail.com', '@gmail.co', '@gmal.com'];
+    const typo = KNOWN_TYPOS.find(t => targetEmail.toLowerCase().endsWith(t));
+    if (typo) {
+      setLeadActionBanner({ type: 'error', message: `Email typo detected: "${targetEmail}" ends with "${typo}". Please fix it above (e.g. @gmail.com) before sending.` });
+      return;
+    }
     setIsSendingEmail(true);
     try {
       const res = await sendManualInquiryConfirmationEmail(
         selectedInquiry.id,
-        confirmSlotInput.trim() || undefined
+        confirmSlotInput.trim() || undefined,
+        targetEmail !== selectedInquiry.email ? targetEmail : undefined
       );
-      if (res.success) {
+      if (res.success && res.delivered) {
         setLeadActionBanner({
           type: 'success',
-          message: res.message || `Confirmation email delivered to ${selectedInquiry.email}!`,
+          message: res.message || `Confirmation email delivered to ${targetEmail}!`,
           waLink: leadActionBanner?.waLink,
           waLabel: leadActionBanner?.waLabel
         });
       } else {
         setLeadActionBanner({
           type: 'error',
-          message: res.error || 'Failed to dispatch confirmation email.'
+          message: res.message || res.error || `Email delivery failed for ${targetEmail}. Check SMTP/Resend credentials.`
         });
       }
     } catch (err: any) {
@@ -632,7 +650,7 @@ export function AdminInquiries({ inquiries, onRefresh }: AdminInquiriesProps) {
               <div className="grid grid-cols-2 gap-2 text-[11px] font-mono text-slate-300 pt-1">
                 <div>
                   <span className="text-slate-500 block">Sent To:</span>
-                  <span className="text-white truncate block">{selectedInquiry.emailNotificationSentTo || 'ullahsafiullah117@gmail.com'}</span>
+                  <span className="text-white truncate block">{selectedInquiry.emailNotificationSentTo || 'techfixpeshawar@gmail.com'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 block">Provider Used:</span>
@@ -798,9 +816,38 @@ export function AdminInquiries({ inquiries, onRefresh }: AdminInquiriesProps) {
 
                   <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-200/90 leading-relaxed space-y-1">
                     <div><strong>Channel Control:</strong> Confirm appointment and dispatch via <strong>WhatsApp</strong> or <strong>Manual Email</strong>.</div>
-                    <div className="text-[10px] text-slate-400">
-                      Target Email: {selectedInquiry.email ? <span className="text-emerald-300 underline">{selectedInquiry.email}</span> : <span className="text-amber-400">None on record</span>}
+                  </div>
+
+                  {/* Editable Customer Email */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-300 mb-1">
+                      Customer Email Address:
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={customerEmailInput}
+                        onChange={(e) => setCustomerEmailInput(e.target.value)}
+                        placeholder="customer@gmail.com"
+                        className={`flex-1 rounded-lg bg-slate-950 border px-3 py-1.5 text-xs text-white font-mono focus:outline-none transition-all ${
+                          customerEmailInput && ['@gmil.com', '@gmai.com', '@gmial.com', '@gnail.com', '@gmail.co', '@gmal.com'].some(t => customerEmailInput.toLowerCase().endsWith(t))
+                            ? 'border-amber-500 focus:border-amber-400'
+                            : 'border-slate-700 focus:border-emerald-500'
+                        }`}
+                      />
+                      {customerEmailInput && ['@gmil.com', '@gmai.com', '@gmial.com', '@gnail.com', '@gmail.co', '@gmal.com'].some(t => customerEmailInput.toLowerCase().endsWith(t)) && (
+                        <button
+                          type="button"
+                          onClick={() => setCustomerEmailInput(customerEmailInput.replace(/@[^@]+$/, '@gmail.com'))}
+                          className="px-2 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-[10px] font-bold whitespace-nowrap cursor-pointer"
+                        >
+                          Fix → @gmail.com
+                        </button>
+                      )}
                     </div>
+                    {customerEmailInput && ['@gmil.com', '@gmai.com', '@gmial.com', '@gnail.com', '@gmail.co', '@gmal.com'].some(t => customerEmailInput.toLowerCase().endsWith(t)) && (
+                      <p className="mt-1 text-[10px] text-amber-400">⚠️ Possible email typo detected. Click "Fix → @gmail.com" to auto-correct.</p>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
@@ -814,7 +861,7 @@ export function AdminInquiries({ inquiries, onRefresh }: AdminInquiriesProps) {
                     </button>
 
                     <div className="flex items-center gap-2">
-                      {selectedInquiry.email && (
+                      {(customerEmailInput.trim() || selectedInquiry.email) && (
                         <button
                           type="button"
                           onClick={handleSendConfirmationEmailManual}

@@ -19,6 +19,8 @@ import {
   createUserWithEmailAndPassword, 
   signOut,
   onAuthStateChanged,
+  onIdTokenChanged,
+  updatePassword,
   User 
 } from 'firebase/auth';
 import { 
@@ -54,6 +56,7 @@ try {
 
 export const db = firestoreInstance;
 export const auth = getAuth(app);
+export { onIdTokenChanged, updatePassword };
 
 // Firestore Collection References
 export const servicesCol = collection(db, 'services');
@@ -215,9 +218,9 @@ export const initialMockServices: ServiceItem[] = [
 export const initialMockSettings: SiteSettings = {
   businessName: "TechFix On-Site Computer Services",
   tagline: "Contact Online — We Come To You. Professional Computer Support in Peshawar.",
-  phoneNumber: "0312 9876543",
-  whatsappNumber: "+92 312 9876543",
-  email: "ullahsafiullah117@gmail.com",
+  phoneNumber: "+92 327 5526107",
+  whatsappNumber: "+92 327 5526107",
+  email: "techfixpeshawar@gmail.com",
   serviceAreaCity: "Peshawar, Khyber Pakhtunkhwa",
   businessHours: "Monday – Saturday: 9:00 AM – 8:30 PM (Urgent On-Site Visits Available)",
   visitFeeStarting: "From Rs. 500",

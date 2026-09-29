@@ -86,6 +86,10 @@ export function BookingForm({
       setError('Please enter your primary phone number.');
       return;
     }
+    if (!computerBrandModel.trim()) {
+      setError('Please enter your Computer Brand & Model (e.g. Dell Latitude 5490, HP Pavilion, Lenovo ThinkPad, or Custom Tower).');
+      return;
+    }
     if (!problemDescription.trim()) {
       setError('Please briefly describe what computer problem you are experiencing.');
       return;
@@ -170,7 +174,7 @@ export function BookingForm({
               <div>
                 <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-800/40 mb-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  Dispatched to Technician (ullahsafiullah117@gmail.com)
+                  Dispatched to Technician (techfixpeshawar@gmail.com)
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-mono">
                   REQUEST RECEIVED
@@ -277,7 +281,7 @@ export function BookingForm({
             </div>
           ) : (
             /* ACTIVE FORM */
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form id="booking-form-fields" onSubmit={handleSubmit} className="space-y-6">
               
               {error && (
                 <div className="rounded-xl border border-rose-500/40 bg-rose-950/40 p-3.5 text-xs text-rose-300 flex items-center gap-2 skeuo-inset">
@@ -408,14 +412,15 @@ export function BookingForm({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5 font-mono">
-                    Computer Brand / Model
+                    Computer Brand / Model <span className="text-rose-400">*</span>
                   </label>
                   <input
                     type="text"
+                    required
                     value={computerBrandModel}
                     onChange={(e) => setComputerBrandModel(e.target.value)}
-                    placeholder="e.g. Dell Latitude 5490, HP Pavilion, Custom Tower"
-                    className="w-full rounded-xl skeuo-input px-4 py-2.5 text-sm text-white placeholder-slate-500"
+                    placeholder="e.g. Dell Latitude 5490, HP Pavilion, Lenovo ThinkPad"
+                    className="w-full rounded-xl skeuo-input px-4 py-2.5 text-sm text-white placeholder-slate-500 font-mono"
                   />
                 </div>
               </div>

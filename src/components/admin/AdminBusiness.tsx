@@ -24,7 +24,7 @@ import {
   Send
 } from 'lucide-react';
 import { SiteSettings } from '../../types';
-import { updateSettings, updateServiceAreas, sendAdminTestEmail } from '../../utils/api';
+import { updateSettings, updateServiceAreas, sendAdminTestEmail, getCachedAdminToken } from '../../utils/api';
 import { getWhatsAppLink } from '../../utils/whatsapp';
 
 function XLogo({ className = "h-4 w-4" }: { className?: string }) {
@@ -89,7 +89,8 @@ export function AdminBusiness({ settings, serviceAreas, onRefresh }: AdminBusine
 
   // Check email configuration status on load
   useEffect(() => {
-    const token = localStorage.getItem('techfix_admin_token') || 'admin-auth-session-valid';
+    const token = getCachedAdminToken();
+    if (!token) return;
     fetch('/api/admin/email-status', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -103,7 +104,7 @@ export function AdminBusiness({ settings, serviceAreas, onRefresh }: AdminBusine
   const handleTestEmail = async () => {
     setTestingEmail(true);
     try {
-      const target = formSettings.email || 'ullahsafiullah117@gmail.com';
+      const target = formSettings.email || 'techfixpeshawar@gmail.com';
       const res = await sendAdminTestEmail(target);
       if (res.delivered) {
         showMsg(res.message || `Live test email successfully dispatched to ${target}!`, 'success');
@@ -286,7 +287,7 @@ export function AdminBusiness({ settings, serviceAreas, onRefresh }: AdminBusine
                   type="email"
                   value={formSettings.email || ''}
                   onChange={(e) => setFormSettings({ ...formSettings, email: e.target.value })}
-                  placeholder="ullahsafiullah117@gmail.com"
+                  placeholder="techfixpeshawar@gmail.com"
                   className="w-full rounded-xl bg-slate-950 border border-slate-800 px-3.5 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
                 />
                 <button
@@ -303,7 +304,7 @@ export function AdminBusiness({ settings, serviceAreas, onRefresh }: AdminBusine
               
               <div className="flex items-center justify-between mt-1.5">
                 <p className="text-[11px] text-slate-400">
-                  Bookings and customer inquiries are targeted to <strong className="text-blue-300">{formSettings.email || 'ullahsafiullah117@gmail.com'}</strong>.
+                  Bookings and customer inquiries are targeted to <strong className="text-blue-300">{formSettings.email || 'techfixpeshawar@gmail.com'}</strong>.
                 </p>
                 <button
                   type="button"
@@ -352,7 +353,7 @@ export function AdminBusiness({ settings, serviceAreas, onRefresh }: AdminBusine
                       <li>
                         In Google AI Studio, open <strong>Settings &gt; Secrets</strong> and add:
                         <div className="mt-1 bg-slate-950 p-2 rounded-lg font-mono text-[10px] text-slate-300 border border-slate-800 space-y-0.5">
-                          <div>GMAIL_USER = &quot;{formSettings.email || 'ullahsafiullah117@gmail.com'}&quot;</div>
+                          <div>GMAIL_USER = &quot;{formSettings.email || 'techfixpeshawar@gmail.com'}&quot;</div>
                           <div>GMAIL_APP_PASSWORD = &quot;xxxx xxxx xxxx xxxx&quot;</div>
                         </div>
                       </li>

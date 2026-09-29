@@ -290,7 +290,17 @@ export function TrackRequestPage({ settings, onNavigate }: TrackRequestPageProps
               <div className="text-[11px] text-slate-500 font-mono">
                 Need to book a new appointment?{' '}
                 <button
-                  onClick={() => onNavigate('contact')}
+                  onClick={() => {
+                    onNavigate('contact');
+                    setTimeout(() => {
+                      const el = document.getElementById('booking-form-fields');
+                      if (el) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const firstInput = el.querySelector('input, select, textarea') as HTMLElement;
+                        if (firstInput) firstInput.focus();
+                      }
+                    }, 120);
+                  }}
                   className="text-blue-400 hover:text-blue-300 underline cursor-pointer"
                 >
                   Submit a Service Request

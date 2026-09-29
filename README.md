@@ -1,25 +1,75 @@
-<<<<<<< HEAD
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
 </div>
 
-# Run and deploy your AI Studio app
+# TechFix Peshawar — On-Site Computer Support & System Diagnostics
 
-This contains everything you need to run your app locally.
+TechFix Peshawar is a professional on-site computer support, hardware diagnostic, and IT service platform operating across Peshawar, Khyber Pakhtunkhwa.
 
-View your app in AI Studio: https://ai.studio/apps/70e75457-6a23-4284-84ee-9bd0ef9c4555
+## Tech Stack
 
-## Run Locally
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS, Lucide Icons
+- **Backend:** Node.js, Express, Nodemailer, Resend
+- **Database & Auth:** Firebase Authentication, Cloud Firestore
+- **Deployment:** Vercel / Node server
 
-**Prerequisites:**  Node.js
+## Features
 
+- **On-Site Booking System:** Instant scheduling for computer repairs, Windows setups, and SSD upgrades.
+- **Direct Lead & Inquiry Dispatch:** Customer inquiries dispatched in real-time with auto-failover notification waterfalls (Gmail SMTP & Resend).
+- **Secure Administrator Panel:** Cryptographic Firebase ID token-verified dashboard for managing bookings, CMS content, services, FAQs, and system settings.
+- **Real-Time Tracking:** Sanitized reference lookup protecting customer privacy.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-=======
-# tech-fix-peshawer
+## Getting Started
 
->>>>>>> 28eec5afdb82c0902246bd391336bf5c2e1aac5a
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Copy environment variables template
+cp .env.example .env
+```
+
+### Environment Configuration
+
+Configure the following variables in `.env`:
+
+```env
+PORT=3000
+NODE_ENV=development
+
+# Email Notification System
+RESEND_API_KEY=
+RESEND_FROM=Peshawar Tech Support <onboarding@resend.dev>
+NOTIFICATION_TARGET_EMAIL=techfixpeshawar@gmail.com
+GMAIL_USER=techfixpeshawar@gmail.com
+GMAIL_APP_PASSWORD=
+
+# Business Info
+BUSINESS_PHONE=0327 5526107
+BUSINESS_WHATSAPP=923275526107
+```
+
+### Development
+
+```bash
+# Run both Express server and Vite frontend
+npm run dev
+```
+
+### Production Build
+
+```bash
+# Run type check and Vite production bundle build
+npm run build
+
+# Start production server
+npm start
+```

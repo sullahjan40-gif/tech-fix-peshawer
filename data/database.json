@@ -1,7 +1,7 @@
 {
   "settings": {
-    "whatsappNumber": "+923275226107",
-    "phoneNumber": "+92 327 5226107",
+    "whatsappNumber": "+92 327 5526107",
+    "phoneNumber": "+92 327 5526107",
     "email": "techfixpeshawar@gmail.com",
     "serviceCity": "Peshawar, Khyber Pakhtunkhwa, Pakistan",
     "businessHours": "Monday – Saturday: 9:00 AM – 8:30 PM (Urgent On-Site Visits Available)",
@@ -17,16 +17,18 @@
     "socialLinkedin": "https://linkedin.com/in/safiullah",
     "socialTiktok": "https://tiktok.com/@safiullah_tech",
     "socialFacebook": "https://facebook.com/peshawaronlinepc",
-    "resendApiKey": "re_Buuf9PGF_AbXoKs68mLpsbNEJQx8tQW7a",
+    "resendApiKey": "re_gCEupJvR_KKnTviBj1fTESPz2rQwXajFZ",
     "resendFromEmail": "TechFix Support <onboarding@resend.dev>",
     "resendTargetEmail": "techfixpeshawar@gmail.com",
-    "emailProvider": "resend",
-    "gmailUser": "ullahsafiullah117@gmail.com",
-    "gmailAppPassword": "bdabivwmaxsgcdc",
+    "emailProvider": "gmail_smtp",
+    "gmailUser": "techfixpeshawar@gmail.com",
+    "gmailAppPassword": "nkxq riks tufo plcr",
     "serviceAreaCity": "Peshawar, Khyber Pakhtunkhwa",
     "supportResponseSla": "Fast response within 15–30 minutes during active hours",
     "socialInstagram": "",
-    "socialYoutube": ""
+    "socialYoutube": "",
+    "updatedAt": "2026-09-19T17:45:27.520Z",
+    "brevoApiKey": ""
   },
   "services": [
     {
@@ -588,6 +590,162 @@
   ],
   "inquiries": [
     {
+      "id": "INQ-MUMFBBWN-537",
+      "bookingId": "PSH-MUMFBBWN-537",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-29T08:37:38.951Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-29T08:37:38.951Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
+      "id": "INQ-MULPR4B0-683",
+      "bookingId": "PSH-MULPR4B0-683",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-28T20:42:05.580Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-28T20:42:05.580Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
+      "id": "INQ-MULOLASM-585",
+      "bookingId": "PSH-MULOLASM-585",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-28T20:09:34.438Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-28T20:09:34.438Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
+      "id": "INQ-MULOKNWB-312",
+      "bookingId": "PSH-MULOKNWB-312",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-28T20:09:04.763Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-28T20:09:04.763Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
+      "id": "INQ-MULOHPRG-929",
+      "bookingId": "PSH-MULOHPRG-929",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-28T20:06:47.212Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-28T20:06:47.212Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
+      "id": "INQ-MULOFM6L-377",
+      "bookingId": "PSH-MULOFM6L-377",
+      "fullName": "Kamran Khan QA",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "subject": "Service Request: Windows 11 Clean Installation (Laptop — Dell Latitude 7490)",
+      "service": "Windows 11 Clean Installation",
+      "budget": "Pending On-Site Inspection (From Rs. 500)",
+      "message": "Problem: Frequent crashing and malware popups after downloading software.\nDevice: Laptop Dell Latitude 7490\nSchedule: 2026-10-01 (Morning (10:00 AM – 1:00 PM))\nUrgency: Normal\nCritical Data: YES",
+      "status": "NEW",
+      "emailNotificationStatus": "sent",
+      "emailNotificationSentTo": "techfixpeshawar@gmail.com",
+      "emailNotificationSentAt": "2026-09-28T20:05:09.261Z",
+      "emailNotificationProvider": "smtp",
+      "createdAt": "2026-09-28T20:05:09.261Z",
+      "preferredDate": "2026-10-01",
+      "preferredTime": "Morning (10:00 AM – 1:00 PM)",
+      "deviceType": "Laptop",
+      "computerBrandModel": "Dell Latitude 7490",
+      "urgency": "Normal",
+      "containsImportantData": "YES"
+    },
+    {
       "id": "INQ-1789766133168-964",
       "fullName": "Tech Fix peshawar",
       "phone": "034409444",
@@ -804,6 +962,21 @@
   ],
   "customers": [
     {
+      "id": "cust-1790625909261",
+      "name": "Kamran Khan QA",
+      "email": "kamran.qa@example.com",
+      "phone": "0321 5566778",
+      "whatsapp": "0321 5566778",
+      "area": "Hayatabad Phase 3",
+      "totalBookings": 6,
+      "totalSpent": "Pending",
+      "lastServiceDate": "Just now",
+      "notes": "Submitted service request online",
+      "devices": [
+        "Dell Latitude 7490"
+      ]
+    },
+    {
       "id": "CUST-1789766134122",
       "name": "Tech Fix peshawar",
       "phone": "034409444",
@@ -983,6 +1156,552 @@
     }
   ],
   "activityLogs": [
+    {
+      "id": "log-1790672458192",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <727cf399-9376-283a-9cab-dbf919dbc7b9@gmail.com>)",
+      "timestamp": "2026-09-29T09:00:58.192Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790672452744",
+      "action": "Settings Saved",
+      "details": "Updated settings & active email dispatch config (Engine: GMAIL_SMTP, Resend Key: re_gCEup..., Sender: \"TechFix Support <onboarding@resend.dev>\", Destination: \"techfixpeshawar@gmail.com\", Google User: \"techfixpeshawar@gmail.com\")",
+      "timestamp": "2026-09-29T09:00:52.744Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790672418545",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <d080232e-681a-0a6c-f5ce-32afa9040c6f@gmail.com>)",
+      "timestamp": "2026-09-29T09:00:18.545Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671064563",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <841a72a7-8adc-3d2e-8c97-f5e7e7bd9b5c@gmail.com>)",
+      "timestamp": "2026-09-29T08:37:44.563Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790671062141",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-29T08:37:42.141Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790671059087",
+      "action": "Real Service Case Published",
+      "details": "Published case: \"HDD to NVMe SSD Migration in Saddar\"",
+      "timestamp": "2026-09-29T08:37:39.087Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671059059",
+      "action": "FAQ Added",
+      "details": "Added new FAQ: \"Do you provide on-site repair in Hayatabad?...\"",
+      "timestamp": "2026-09-29T08:37:39.059Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671059027",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-29T08:37:39.027Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671058997",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-29T08:37:38.997Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671058981",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MUMFBBWN-537 for Kamran Khan QA",
+      "timestamp": "2026-09-29T08:37:38.981Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790671058961",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MUMFBBWN-537 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-29T08:37:38.961Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790671058951",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-29T08:37:38.951Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790671057907",
+      "action": "Customer Profile Created",
+      "details": "Added new client: QA Permanent Deletion Test Customer (0333 9988776)",
+      "timestamp": "2026-09-29T08:37:37.907Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671056785",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-29T08:37:36.785Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790671055601",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-29T08:37:35.601Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628131352",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <2c0dfb8a-3fc4-b06c-d3cd-c4f41ab672e7@gmail.com>)",
+      "timestamp": "2026-09-28T20:42:11.352Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790628128755",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T20:42:08.755Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790628125718",
+      "action": "Real Service Case Published",
+      "details": "Published case: \"HDD to NVMe SSD Migration in Saddar\"",
+      "timestamp": "2026-09-28T20:42:05.718Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628125688",
+      "action": "FAQ Added",
+      "details": "Added new FAQ: \"Do you provide on-site repair in Hayatabad?...\"",
+      "timestamp": "2026-09-28T20:42:05.688Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628125656",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-28T20:42:05.656Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628125626",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-28T20:42:05.626Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628125610",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MULPR4B0-683 for Kamran Khan QA",
+      "timestamp": "2026-09-28T20:42:05.610Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790628125587",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MULPR4B0-683 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-28T20:42:05.587Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790628125580",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-28T20:42:05.580Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790628124570",
+      "action": "Customer Profile Created",
+      "details": "Added new client: QA Permanent Deletion Test Customer (0333 9988776)",
+      "timestamp": "2026-09-28T20:42:04.570Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628123456",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:42:03.456Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790628122056",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:42:02.056Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626941431",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <5d577a68-d441-3c56-5117-23f65c553316@gmail.com>)",
+      "timestamp": "2026-09-28T20:22:21.431Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626934889",
+      "action": "Settings Saved",
+      "details": "Updated settings & active email dispatch config (Engine: RESEND, Resend Key: re_gCEup..., Sender: \"TechFix Support <onboarding@resend.dev>\", Destination: \"techfixpeshawar@gmail.com\", Google User: \"techfixpeshawar@gmail.com\")",
+      "timestamp": "2026-09-28T20:22:14.889Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626878993",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <3e1327c3-2561-2ce6-5e07-5e4b52a66539@gmail.com>)",
+      "timestamp": "2026-09-28T20:21:18.993Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626178483",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <f83b694d-74ff-fb46-3822-777ee31ded8e@gmail.com>)",
+      "timestamp": "2026-09-28T20:09:38.483Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626176549",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T20:09:36.549Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790626174569",
+      "action": "Real Service Case Published",
+      "details": "Published case: \"HDD to NVMe SSD Migration in Saddar\"",
+      "timestamp": "2026-09-28T20:09:34.569Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626174540",
+      "action": "FAQ Added",
+      "details": "Added new FAQ: \"Do you provide on-site repair in Hayatabad?...\"",
+      "timestamp": "2026-09-28T20:09:34.540Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626174523",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-28T20:09:34.523Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626174492",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-28T20:09:34.492Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626174477",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MULOLASM-585 for Kamran Khan QA",
+      "timestamp": "2026-09-28T20:09:34.477Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626174443",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MULOLASM-585 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-28T20:09:34.443Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790626174438",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-28T20:09:34.438Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790626173116",
+      "action": "Customer Profile Created",
+      "details": "Added new client: QA Permanent Deletion Test Customer (0333 9988776)",
+      "timestamp": "2026-09-28T20:09:33.116Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626172046",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:09:32.046Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626170603",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:09:30.603Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626148698",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <68d44240-7280-93a3-89ea-da091038eb2f@gmail.com>)",
+      "timestamp": "2026-09-28T20:09:08.698Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626146871",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T20:09:06.871Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790626144897",
+      "action": "Real Service Case Published",
+      "details": "Published case: \"HDD to NVMe SSD Migration in Saddar\"",
+      "timestamp": "2026-09-28T20:09:04.897Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626144869",
+      "action": "FAQ Added",
+      "details": "Added new FAQ: \"Do you provide on-site repair in Hayatabad?...\"",
+      "timestamp": "2026-09-28T20:09:04.869Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626144838",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-28T20:09:04.838Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626144808",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-28T20:09:04.808Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626144792",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MULOKNWB-312 for Kamran Khan QA",
+      "timestamp": "2026-09-28T20:09:04.792Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626144766",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MULOKNWB-312 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-28T20:09:04.766Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790626144763",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-28T20:09:04.763Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790626143758",
+      "action": "Customer Profile Created",
+      "details": "Added new client: QA Permanent Deletion Test Customer (0333 9988776)",
+      "timestamp": "2026-09-28T20:09:03.758Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626142671",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:09:02.671Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626141618",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:09:01.618Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626011338",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <9e870885-4a1f-40b3-3a6c-f08e906a939f@gmail.com>)",
+      "timestamp": "2026-09-28T20:06:51.338Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626009421",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T20:06:49.421Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790626007335",
+      "action": "Real Service Case Published",
+      "details": "Published case: \"HDD to NVMe SSD Migration in Saddar\"",
+      "timestamp": "2026-09-28T20:06:47.335Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626007304",
+      "action": "FAQ Added",
+      "details": "Added new FAQ: \"Do you provide on-site repair in Hayatabad?...\"",
+      "timestamp": "2026-09-28T20:06:47.304Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626007274",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-28T20:06:47.274Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626007242",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-28T20:06:47.242Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626007230",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MULOHPRG-929 for Kamran Khan QA",
+      "timestamp": "2026-09-28T20:06:47.230Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790626007213",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MULOHPRG-929 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-28T20:06:47.213Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790626007212",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-28T20:06:47.212Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790626006235",
+      "action": "Customer Profile Created",
+      "details": "Added new client: QA Permanent Deletion Test Customer (0333 9988776)",
+      "timestamp": "2026-09-28T20:06:46.235Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626004777",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:06:44.777Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790626001862",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:06:41.862Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790625914042",
+      "action": "Email Test Delivered",
+      "details": "Live verification email sent from \"TechFix Support <onboarding@resend.dev>\" to techfixpeshawar@gmail.com via SMTP (ID: <81aa96ad-52b1-6948-965e-ae7cb7f68a57@gmail.com>)",
+      "timestamp": "2026-09-28T20:05:14.042Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790625911747",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T20:05:11.747Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-1790625909312",
+      "action": "Page Published",
+      "details": "Page [bulk-windows] is now PUBLISHED",
+      "timestamp": "2026-09-28T20:05:09.312Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790625909291",
+      "action": "Page Unpublished",
+      "details": "Page [bulk-windows] is now UNPUBLISHED",
+      "timestamp": "2026-09-28T20:05:09.291Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790625909280",
+      "action": "Booking Deleted",
+      "details": "Removed request #PSH-MULOFM6L-377 for Kamran Khan QA",
+      "timestamp": "2026-09-28T20:05:09.280Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790625909267",
+      "action": "Email Notification Sent",
+      "details": "Immediate notification dispatched to techfixpeshawar@gmail.com for request PSH-MULOFM6L-377 (Kamran Khan QA) & confirmation sent to customer (kamran.qa@example.com)",
+      "timestamp": "2026-09-28T20:05:09.267Z",
+      "user": "System Notification Trigger"
+    },
+    {
+      "id": "log-1790625909261",
+      "action": "New Request Submitted",
+      "details": "Kamran Khan QA requested Windows 11 Clean Installation (Hayatabad Phase 3)",
+      "timestamp": "2026-09-28T20:05:09.261Z",
+      "user": "Customer (Online)"
+    },
+    {
+      "id": "log-1790625906651",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:05:06.651Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-1790625905573",
+      "action": "Settings Saved",
+      "details": "Updated core contact & business configurations",
+      "timestamp": "2026-09-28T20:05:05.573Z",
+      "user": "Safiullah (Admin)"
+    },
+    {
+      "id": "log-email-1790623046254",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T19:17:26.254Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-email-1790622714153",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T19:11:54.153Z",
+      "user": "Notification Trigger"
+    },
+    {
+      "id": "log-email-1790622690089",
+      "action": "Email Notification Dispatched",
+      "details": "Alert dispatched to techfixpeshawar@gmail.com for Customer (PC Repair)",
+      "timestamp": "2026-09-28T19:11:30.089Z",
+      "user": "Notification Trigger"
+    },
     {
       "id": "log-1789834259269",
       "action": "Email Test Delivered",
@@ -1297,118 +2016,6 @@
       "details": "Immediate notification dispatched to ullahsafiullah117@gmail.com for request PSH-MU7DSZMR-774 (Ali Khan) & confirmation sent to customer (alikhan@example.com)",
       "timestamp": "2026-09-18T19:58:50.982Z",
       "user": "System Notification Trigger"
-    },
-    {
-      "id": "log-1789761530980",
-      "action": "New Request Submitted",
-      "details": "Ali Khan requested General Troubleshooting (Hayatabad (Phases 1 to 7))",
-      "timestamp": "2026-09-18T19:58:50.980Z",
-      "user": "Customer (Online)"
-    },
-    {
-      "id": "log-inq-1789761518545",
-      "action": "Lead Inquiry Received",
-      "details": "Peshawar Test Client submitted inquiry (\"Windows BSOD Crash Support\"). Email: SENT via RESEND to ullahsafiullah117@gmail.com",
-      "timestamp": "2026-09-18T19:58:38.545Z",
-      "user": "Client (Online)"
-    },
-    {
-      "id": "log-1789761415686",
-      "action": "Email Test Delivered",
-      "details": "Live verification email delivered to ullahsafiullah117@gmail.com via RESEND (ID: 01a0b617-e916-76cc-963f-00d84d79d199)",
-      "timestamp": "2026-09-18T19:56:55.686Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-email-1789760544429",
-      "action": "Email Notification Dispatched",
-      "details": "Alert dispatched to ullahsafiullah117@gmail.com for Tech Fix peshawar (Fast Windows Installation & Setup)",
-      "timestamp": "2026-09-18T19:42:24.429Z",
-      "user": "Notification Trigger"
-    },
-    {
-      "id": "log-email-1789760541973",
-      "action": "Email Notification Sent",
-      "details": "Immediate notification dispatched to ullahsafiullah117@gmail.com for request PSH-MU7D7SI6-650 (Tech Fix peshawar) & confirmation sent to customer (techfixpeshawar@gmail.com)",
-      "timestamp": "2026-09-18T19:42:21.973Z",
-      "user": "System Notification Trigger"
-    },
-    {
-      "id": "log-1789760541967",
-      "action": "New Request Submitted",
-      "details": "Tech Fix peshawar requested Fast Windows Installation & Setup (University Town)",
-      "timestamp": "2026-09-18T19:42:21.967Z",
-      "user": "Customer (Online)"
-    },
-    {
-      "id": "log-inq-1789760224802",
-      "action": "Lead Inquiry Received",
-      "details": "Tech Fix peshawar submitted inquiry (\"General Computer Service Query\"). Email: SENT via FORMSUBMIT to ullahsafiullah117@gmail.com",
-      "timestamp": "2026-09-18T19:37:04.802Z",
-      "user": "Client (Online)"
-    },
-    {
-      "id": "log-1789759991702",
-      "action": "Email Test Delivered",
-      "details": "Live verification email delivered to ullahsafiullah117@gmail.com via FORMSUBMIT (ID: ok)",
-      "timestamp": "2026-09-18T19:33:11.702Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-inq-1789756943918",
-      "action": "Lead Inquiry Received",
-      "details": "Tech Fix peshawar submitted inquiry (\"v\"). Email: SENT via FORMSUBMIT to ullahsafiullah117@gmail.com",
-      "timestamp": "2026-09-18T18:42:23.918Z",
-      "user": "Client (Online)"
-    },
-    {
-      "id": "log-1789756916033",
-      "action": "Page Published",
-      "details": "Page [faq] is now PUBLISHED",
-      "timestamp": "2026-09-18T18:41:56.033Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-1789756888560",
-      "action": "Page Unpublished",
-      "details": "Page [faq] is now UNPUBLISHED",
-      "timestamp": "2026-09-18T18:41:28.560Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-1789756847088",
-      "action": "Email Test Delivered",
-      "details": "Live verification email delivered to ullahsafiullah117@gmail.com via FORMSUBMIT (ID: ok)",
-      "timestamp": "2026-09-18T18:40:47.088Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-1789756578586",
-      "action": "Email Test Delivered",
-      "details": "Live verification email delivered to ullahsafiullah117@gmail.com via FORMSUBMIT (ID: ok)",
-      "timestamp": "2026-09-18T18:36:18.586Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-1",
-      "action": "System Initialized",
-      "details": "Admin CMS loaded with official Peshawar on-site service catalog",
-      "timestamp": "2026-09-18T18:32:31.000Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-2",
-      "action": "Booking Confirmed",
-      "details": "Confirmed on-site visit for Professor Khalid at Agriculture University (Today 2:30 PM)",
-      "timestamp": "2026-09-18T17:32:31.000Z",
-      "user": "Safiullah (Admin)"
-    },
-    {
-      "id": "log-3",
-      "action": "Price Updated",
-      "details": "Verified standard transparent starting price Rs. 1,500 for Clean Windows Setup",
-      "timestamp": "2026-09-18T16:32:31.000Z",
-      "user": "Safiullah (Admin)"
     }
   ],
   "pageSections": {

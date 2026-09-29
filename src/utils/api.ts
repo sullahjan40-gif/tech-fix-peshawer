@@ -14,7 +14,7 @@ import {
   ProblemSolutionItem,
   ProblemLead
 } from '../types';
-import { db } from '../lib/firebase';
+import { db, auth, onIdTokenChanged, updatePassword } from '../lib/firebase';
 import { 
   doc, 
   setDoc, 
@@ -29,23 +29,62 @@ import {
 import { sendServiceNotificationEmail, sendCustomerInquiryEmail } from './notifications';
 import { fallbackAppData, fallbackPageSections } from './fallbackData';
 
+// BUG-073 FIX: Do NOT store bearer tokens in persistent localStorage (vulnerable to XSS and survives logout/session termination).
+// Use in-memory caching and tab-scoped sessionStorage, and purge any legacy localStorage tokens.
 let adminTokenCache: string | null = null;
 
 export function getCachedAdminToken(): string {
-  if (!adminTokenCache) {
-    adminTokenCache = localStorage.getItem('techfix_admin_token') || 'admin-auth-session-valid';
+  if (!adminTokenCache && typeof window !== 'undefined') {
+    adminTokenCache = sessionStorage.getItem('techfix_admin_token') || '';
+    // Purge any legacy localStorage token
+    if (localStorage.getItem('techfix_admin_token')) {
+      localStorage.removeItem('techfix_admin_token');
+    }
   }
-  return adminTokenCache;
+  return adminTokenCache || '';
 }
 
 export function setCachedAdminToken(token: string) {
   adminTokenCache = token;
-  localStorage.setItem('techfix_admin_token', token);
+  if (typeof window !== 'undefined') {
+    if (token) {
+      sessionStorage.setItem('techfix_admin_token', token);
+    } else {
+      sessionStorage.removeItem('techfix_admin_token');
+    }
+    // Always purge from localStorage to eliminate long-lived XSS persistence
+    localStorage.removeItem('techfix_admin_token');
+  }
 }
 
 export function clearCachedAdminToken() {
   adminTokenCache = null;
-  localStorage.removeItem('techfix_admin_token');
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem('techfix_admin_token');
+    sessionStorage.removeItem('admin_session_auth');
+    sessionStorage.removeItem('admin_session_email');
+    localStorage.removeItem('techfix_admin_token');
+    localStorage.removeItem('techfix_custom_admin_password');
+    // BUG-059 FIX: Clear settings cache on logout so no stale/sensitive data
+    // survives into a new session. Keep the key in sync with App.tsx constant.
+    localStorage.removeItem('techfix_settings_cache');
+  }
+}
+
+// Automatically synchronize token cache when Firebase auth ID token changes
+if (typeof window !== 'undefined') {
+  onIdTokenChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const token = await user.getIdToken();
+        setCachedAdminToken(token);
+      } catch (err) {
+        console.warn('ID token sync note:', err);
+      }
+    } else {
+      clearCachedAdminToken();
+    }
+  });
 }
 
 /**
@@ -174,7 +213,7 @@ export async function submitServiceRequest(
       message: `Problem: ${booking.problemDescription}\nDevice: ${booking.deviceType} ${booking.computerBrandModel || ''}\nPreferred Slot: ${booking.preferredDate} (${booking.preferredTime})\nUrgency: ${booking.urgency}\nCritical Data: ${booking.containsImportantData}`,
       status: 'NEW',
       emailNotificationStatus: 'sent',
-      emailNotificationSentTo: 'ullahsafiullah117@gmail.com',
+      emailNotificationSentTo: 'techfixpeshawar@gmail.com',
       emailNotificationSentAt: timestamp,
       emailNotificationProvider: 'smtp',
       createdAt: timestamp,
@@ -270,7 +309,7 @@ export async function submitCustomerInquiry(inquiry: {
       problemDescription: inquiry.message,
       urgency: 'Normal',
       containsImportantData: 'NO',
-      recipient: 'ullahsafiullah117@gmail.com',
+      recipient: 'techfixpeshawar@gmail.com',
       createdAt: timestamp,
       status: 'NEW'
     };
@@ -300,65 +339,90 @@ export async function checkBookingStatus(idOrPhone: string): Promise<ServiceRequ
     throw new Error('Please enter a valid Reference ID or Phone Number.');
   }
 
-  // 1. Direct document lookup by ID in 'serviceRequests'
-  try {
-    const srvSnap = await getDoc(doc(db, 'serviceRequests', clean));
-    if (srvSnap.exists()) {
-      return { id: srvSnap.id, ...srvSnap.data() } as ServiceRequest;
-    }
-  } catch (e) {
-    console.warn('Firestore serviceRequests getDoc check:', e);
-  }
-
-  // 2. Direct document lookup by ID in 'requests'
-  try {
-    const reqSnap = await getDoc(doc(db, 'requests', clean));
-    if (reqSnap.exists()) {
-      return { id: reqSnap.id, ...reqSnap.data() } as ServiceRequest;
-    }
-  } catch (e) {
-    console.warn('Firestore requests getDoc check:', e);
-  }
-
-  // 3. Query by phone or whatsapp numbers
-  try {
-    const normalizedPhone = clean.replace(/[\s\-()]/g, '');
-    const phoneCandidates = Array.from(new Set([clean, normalizedPhone].filter(Boolean)));
-
-    for (const phone of phoneCandidates) {
-      const q1 = query(collection(db, 'serviceRequests'), where('phone', '==', phone));
-      const snap1 = await getDocs(q1);
-      if (!snap1.empty) {
-        return { id: snap1.docs[0].id, ...snap1.docs[0].data() } as ServiceRequest;
-      }
-
-      const q2 = query(collection(db, 'serviceRequests'), where('whatsapp', '==', phone));
-      const snap2 = await getDocs(q2);
-      if (!snap2.empty) {
-        return { id: snap2.docs[0].id, ...snap2.docs[0].data() } as ServiceRequest;
-      }
-
-      const q3 = query(collection(db, 'requests'), where('phone', '==', phone));
-      const snap3 = await getDocs(q3);
-      if (!snap3.empty) {
-        return { id: snap3.docs[0].id, ...snap3.docs[0].data() } as ServiceRequest;
-      }
-    }
-  } catch (e) {
-    console.warn('Firestore phone lookup query note:', e);
-  }
-
-  // 4. Check backend API if available
+  // 1. Check backend API first (rate-limited and sanitized to protect customer data)
+  let backendServerError: string | null = null;
   try {
     const res = await fetch(`/api/bookings/${encodeURIComponent(clean)}`);
     if (res.ok) {
       const data = await res.json();
-      if (data && data.booking) return data.booking;
+      if (data && data.booking) return data.booking as ServiceRequest;
+    } else if (res.status === 429) {
+      // BUG-076: Distinguish rate limit errors
+      throw new Error('Too many tracking requests. Please wait a moment before trying again.');
+    } else if (res.status === 401 || res.status === 403) {
+      // BUG-076: Distinguish auth/permission errors
+      throw new Error('Access denied: You do not have permission to view this service request.');
+    } else if (res.status >= 500) {
+      // BUG-076: Distinguish 5xx server errors
+      backendServerError = `Server error (${res.status})`;
+      console.warn('[Tracking] Backend server returned 5xx:', res.status);
     }
-  } catch (err) {}
+  } catch (err: any) {
+    // If it's an explicit error thrown above, rethrow it directly
+    if (err.message && (err.message.includes('Too many tracking requests') || err.message.includes('Access denied'))) {
+      throw err;
+    }
+    console.warn('[Tracking] Network/backend connection note:', err);
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('You appear to be offline. Please verify your internet connection.');
+    }
+  }
 
-  // 5. Honest Not Found state: Throw error so user receives clear guidance
-  throw new Error(`No service request found for "${clean}". Please verify your Reference ID (e.g., REQ-...) or phone number.`);
+  // 2. Direct document lookup by ID in 'serviceRequests' (for static/serverless fallback)
+  try {
+    const srvSnap = await getDoc(doc(db, 'serviceRequests', clean));
+    if (srvSnap.exists()) {
+      const d = srvSnap.data() as any;
+      return {
+        id: srvSnap.id,
+        serviceRequired: d.serviceRequired || '',
+        deviceType: d.deviceType || '',
+        computerBrandModel: d.computerBrandModel || '',
+        area: d.area || 'Peshawar',
+        status: d.status || 'PENDING',
+        scheduledTime: d.scheduledTime || '',
+        preferredDate: d.preferredDate || '',
+        preferredTime: d.preferredTime || '',
+        createdAt: d.createdAt || ''
+      } as ServiceRequest;
+    }
+  } catch (e: any) {
+    console.warn('[Tracking] Firestore serviceRequests lookup note:', e);
+    if (e?.code === 'permission-denied') {
+      throw new Error('Database permission error: Unable to read service request record.');
+    }
+  }
+
+  // 3. Direct document lookup by ID in 'requests'
+  try {
+    const reqSnap = await getDoc(doc(db, 'requests', clean));
+    if (reqSnap.exists()) {
+      const d = reqSnap.data() as any;
+      return {
+        id: reqSnap.id,
+        serviceRequired: d.serviceRequired || '',
+        deviceType: d.deviceType || '',
+        computerBrandModel: d.computerBrandModel || '',
+        area: d.area || 'Peshawar',
+        status: d.status || 'PENDING',
+        scheduledTime: d.scheduledTime || '',
+        preferredDate: d.preferredDate || '',
+        preferredTime: d.preferredTime || '',
+        createdAt: d.createdAt || ''
+      } as ServiceRequest;
+    }
+  } catch (e: any) {
+    console.warn('[Tracking] Firestore requests lookup note:', e);
+    if (e?.code === 'permission-denied') {
+      throw new Error('Database permission error: Unable to read request record.');
+    }
+  }
+
+  // 4. Honest Not Found state: Throw error so user receives clear guidance
+  if (backendServerError) {
+    throw new Error(`Unable to check status at this time (${backendServerError}). Please try again shortly or contact support.`);
+  }
+  throw new Error(`No service request found for "${clean}". Please verify your Reference ID (e.g., REQ-...) or registered phone number.`);
 }
 
 /**
@@ -366,63 +430,100 @@ export async function checkBookingStatus(idOrPhone: string): Promise<ServiceRequ
  */
 export async function verifyAdminPassword(password: string): Promise<boolean> {
   const cleanPassword = (password || '').toString().trim();
-  const customPass = localStorage.getItem('techfix_custom_admin_password');
-
-  if (customPass && customPass.trim().length > 0) {
-    if (cleanPassword === customPass) {
-      setCachedAdminToken('admin-auth-session-valid');
-      return true;
-    }
+  if (!cleanPassword || cleanPassword.length < 6) {
     return false;
   }
-
-  // Pure session validation for Firebase Auth administrators
-  if (cleanPassword && cleanPassword.length >= 6) {
-    setCachedAdminToken('admin-auth-session-valid');
-    return true;
+  // Server-verified admin status via current Firebase user token
+  if (auth.currentUser) {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      setCachedAdminToken(token);
+      const res = await fetch('/api/admin/verify-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return res.ok;
+    } catch (err) {
+      console.warn('[AdminAuth] Token verification network failure:', err);
+      return false;
+    }
   }
-
   return false;
 }
 
 export async function updateAdminPassword(newPassword: string): Promise<{ success: boolean; message: string }> {
   const clean = (newPassword || '').toString().trim();
-  if (!clean || clean.length < 4) {
-    throw new Error('Password must be at least 4 characters long.');
+  if (!clean || clean.length < 6) {
+    // BUG-075: Surface input failure directly to UI
+    throw new Error('Password must be at least 6 characters long.');
   }
 
-  // Save to client storage (ONLY this password will be accepted from now on)
-  localStorage.setItem('techfix_custom_admin_password', clean);
-
-  // Sync password to Firestore site_config so it persists everywhere
-  try {
-    await setDoc(doc(db, 'settings', 'site_config'), {
-      adminPassword: clean,
-      updatedAt: new Date().toISOString()
-    }, { merge: true });
-  } catch (e) {
-    console.warn('Firestore admin password save note:', e);
+  if (!auth.currentUser) {
+    throw new Error('You must be signed in as administrator to change password.');
   }
 
-  // Sync to server API non-blockingly if available
-  const token = getCachedAdminToken();
+  // BUG-074 FIX: Make the authoritative provider (Firebase Auth + server verification) confirm persistence
+  // before updating client-side cache and storage.
+  let newToken: string;
   try {
-    await fetch('/api/admin/change-password', {
+    await updatePassword(auth.currentUser, clean);
+    newToken = await auth.currentUser.getIdToken(true);
+  } catch (err: any) {
+    // BUG-075 FIX: Surface failure to the UI; do not swallow errors
+    if (err?.code === 'auth/requires-recent-login') {
+      throw new Error('Security requirement: Please log out and log back in before updating your password.');
+    }
+    throw new Error(err?.message || 'Failed to update administrator password.');
+  }
+
+  // Confirm server authorizes the new token
+  try {
+    const verifyRes = await fetch('/api/admin/verify-token', {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}` 
-      },
-      body: JSON.stringify({ newPassword: clean })
+        Authorization: `Bearer ${newToken}`
+      }
     });
-  } catch (err) {}
+    if (!verifyRes.ok) {
+      throw new Error(`Server rejected new authentication token (HTTP ${verifyRes.status}).`);
+    }
+  } catch (verifyErr: any) {
+    console.warn('[AdminAuth] Server token verification check failed after password update:', verifyErr);
+    // Even if verify-token fetch had a network error, auth provider accepted password, but we warn
+  }
+
+  // Authoritative update confirmed: now update client token cache
+  setCachedAdminToken(newToken);
+
+  // Remove any legacy plaintext passwords from localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('techfix_custom_admin_password');
+  }
+
+  // Remove any plaintext adminPassword from Firestore site_config if present
+  try {
+    const configSnap = await getDoc(doc(db, 'settings', 'site_config'));
+    if (configSnap.exists() && configSnap.data()?.adminPassword) {
+      const data = { ...configSnap.data() };
+      delete data.adminPassword;
+      await setDoc(doc(db, 'settings', 'site_config'), data);
+    }
+  } catch (e) {
+    console.warn('[AdminAuth] Firestore legacy password cleanup note:', e);
+  }
 
   // Log activity non-blockingly
   try {
-    await addActivityLog('Password Updated', 'Admin security password changed. Backup passwords disabled.');
-  } catch (e) {}
+    await addActivityLog('Password Updated', 'Admin security password changed via Firebase Authentication.');
+  } catch (e) {
+    console.warn('[AdminAuth] Non-blocking audit log note:', e);
+  }
 
-  return { success: true, message: 'Password updated successfully! Backup passwords have been disabled.' };
+  return { success: true, message: 'Password updated successfully via Firebase Authentication!' };
 }
 
 export const adminLogin = verifyAdminPassword;
@@ -855,20 +956,21 @@ export async function confirmBookingAppointment(
 
 export async function sendManualBookingConfirmationEmail(
   id: string,
-  scheduledTime?: string
+  scheduledTime?: string,
+  customerEmail?: string
 ): Promise<{ success: boolean; delivered?: boolean; message?: string; error?: string }> {
   const token = getCachedAdminToken();
   try {
     const res = await fetch(`/api/admin/bookings/${encodeURIComponent(id)}/send-confirmation-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ scheduledTime })
+      body: JSON.stringify({ scheduledTime, customerEmail })
     });
     const data = await res.json();
     if (!res.ok) {
       return { success: false, error: data.error || 'Failed to dispatch email' };
     }
-    return { success: true, delivered: data.delivered, message: data.message };
+    return { success: data.success, delivered: data.delivered, message: data.message };
   } catch (err: any) {
     return { success: false, error: err.message || 'Network error sending email' };
   }
@@ -935,22 +1037,23 @@ export async function confirmInquiryAppointment(
 
 export async function sendManualInquiryConfirmationEmail(
   id: string,
-  scheduledTime?: string
+  scheduledTime?: string,
+  customerEmail?: string
 ): Promise<{ success: boolean; delivered?: boolean; message?: string; error?: string }> {
   const token = getCachedAdminToken();
   try {
     const res = await fetch(`/api/admin/inquiries/${encodeURIComponent(id)}/send-confirmation-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ scheduledTime })
+      body: JSON.stringify({ scheduledTime, customerEmail })
     });
     const data = await res.json();
     if (!res.ok) {
-      return { success: false, error: data.error || 'Failed to dispatch email' };
+      return { success: false, delivered: false, error: data.error || 'Failed to dispatch email', message: data.message };
     }
-    return { success: true, delivered: data.delivered, message: data.message };
+    return { success: data.success === true, delivered: data.delivered === true, message: data.message };
   } catch (err: any) {
-    return { success: false, error: err.message || 'Network error sending email' };
+    return { success: false, delivered: false, error: err.message || 'Network error sending email' };
   }
 }
 
@@ -1053,9 +1156,20 @@ export async function updateCustomer(id: string, updates: Partial<Customer>): Pr
 }
 
 export async function deleteCustomer(id: string): Promise<any> {
+  const token = getCachedAdminToken();
+  try {
+    await fetch(`/api/admin/customers/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (err) {
+    console.warn('Backend deleteCustomer note:', err);
+  }
   try {
     await deleteDoc(doc(db, 'customers', id));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Firestore deleteCustomer note:', e);
+  }
   return { success: true };
 }
 
@@ -1094,9 +1208,20 @@ export async function updateFaq(id: string, updates: Partial<FAQItem>): Promise<
 }
 
 export async function deleteFaq(id: string): Promise<any> {
+  const token = getCachedAdminToken();
+  try {
+    await fetch(`/api/admin/faqs/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (err) {
+    console.warn('Backend deleteFaq note:', err);
+  }
   try {
     await deleteDoc(doc(db, 'faq', id));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Firestore deleteFaq note:', e);
+  }
   return { success: true };
 }
 
@@ -1155,9 +1280,20 @@ export async function updateCaseStudy(id: string, updates: Partial<CaseStudyItem
 }
 
 export async function deleteCaseStudy(id: string): Promise<any> {
+  const token = getCachedAdminToken();
+  try {
+    await fetch(`/api/admin/case-studies/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (err) {
+    console.warn('Backend deleteCaseStudy note:', err);
+  }
   try {
     await deleteDoc(doc(db, 'caseStudies', id));
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Firestore deleteCaseStudy note:', e);
+  }
   return { success: true };
 }
 
@@ -1412,30 +1548,48 @@ export async function addActivityLog(action: string, details?: string): Promise<
       },
       body: JSON.stringify({ action, details })
     });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[API] addActivityLog error:', e);
+  }
   return { success: true };
 }
 
-export async function resetDefaults(): Promise<any> {
+export async function resetDefaults(): Promise<{ success: boolean; error?: string }> {
   const token = getCachedAdminToken();
   try {
-    await fetch('/api/admin/reset-defaults', {
+    const res = await fetch('/api/admin/reset-defaults', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     });
-  } catch (e) {}
-  return { success: true };
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.error || `Reset failed with HTTP ${res.status}`);
+    }
+    return { success: true };
+  } catch (e: any) {
+    console.warn('[API] resetDefaults error:', e);
+    return { success: false, error: e?.message || 'Failed to reset defaults' };
+  }
 }
 
 // ----------------- LEADS & INQUIRIES API -----------------
 export async function fetchInquiries(): Promise<LeadInquiry[]> {
+  const token = getCachedAdminToken();
   try {
-    const res = await fetch('/api/inquiries');
+    const res = await fetch('/api/inquiries', {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
     if (res.ok) {
       const data = await res.json();
       return data.inquiries || [];
+    } else {
+      console.warn('[API] fetchInquiries responded with HTTP', res.status);
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('[API] fetchInquiries error:', err);
+  }
   return [];
 }
 
@@ -1445,24 +1599,48 @@ export async function resendInquiryEmail(id: string): Promise<{
   delivery?: any;
   message: string;
 }> {
+  const token = getCachedAdminToken();
   try {
-    await fetch(`/api/inquiries/${id}/resend-email`, { method: 'POST' });
-  } catch (e) {}
-  return { success: true, message: 'Notification sent successfully' };
+    const res = await fetch(`/api/inquiries/${encodeURIComponent(id)}/resend-email`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      throw new Error(err?.error || `Resend failed with HTTP ${res.status}`);
+    }
+    return { success: true, message: 'Notification sent successfully' };
+  } catch (e: any) {
+    console.warn('[API] resendInquiryEmail error:', e);
+    return { success: false, message: e?.message || 'Failed to resend inquiry notification email' };
+  }
 }
 
 export async function updateInquiryStatus(id: string, status: string, notes?: string): Promise<{ success: boolean; inquiry: LeadInquiry }> {
+  const token = getCachedAdminToken();
   try {
-    await fetch(`/api/inquiries/${id}`, {
+    const res = await fetch(`/api/inquiries/${encodeURIComponent(id)}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
       body: JSON.stringify({ status, notes })
     });
-  } catch (e) {}
+    if (!res.ok) {
+      console.warn('[API] updateInquiryStatus backend returned HTTP', res.status);
+    }
+  } catch (e) {
+    console.warn('[API] updateInquiryStatus backend error:', e);
+  }
 
   try {
     await setDoc(doc(db, 'inquiries', id), { status, notes, updatedAt: new Date().toISOString() }, { merge: true });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[API] updateInquiryStatus Firestore update note:', e);
+  }
 
   const leadStatus: 'NEW' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED' = 
     status === 'CONTACTED' ? 'CONTACTED' :
@@ -1483,7 +1661,7 @@ export async function updateInquiryStatus(id: string, status: string, notes?: st
       status: leadStatus,
       createdAt: new Date().toISOString(),
       emailNotificationStatus: 'sent',
-      emailNotificationSentTo: 'ullahsafiullah117@gmail.com',
+      emailNotificationSentTo: 'techfixpeshawar@gmail.com',
       emailNotificationSentAt: new Date().toISOString(),
       emailNotificationProvider: 'smtp'
     }
@@ -1496,11 +1674,16 @@ export async function deleteInquiry(id: string): Promise<{ success: boolean; rem
 
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/inquiries/${encodeURIComponent(cleanId)}`, {
+    const res = await fetch(`/api/inquiries/${encodeURIComponent(cleanId)}`, {
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] deleteInquiry backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] deleteInquiry backend error:', err);
+  }
 
   try {
     const cleanUpper = cleanId.toUpperCase();
@@ -1513,7 +1696,9 @@ export async function deleteInquiry(id: string): Promise<{ success: boolean; rem
       deletePromises.push(deleteDoc(doc(db, 'serviceRequests', docId)));
     }
     await Promise.allSettled(deletePromises);
-  } catch (fsErr) {}
+  } catch (fsErr) {
+    console.warn('[API] deleteInquiry Firestore deletion note:', fsErr);
+  }
 
   return { success: true, removedId: cleanId };
 }
@@ -1560,7 +1745,7 @@ export async function sendAdminTestEmail(optionsOrEmail?: {
       delivered: false,
       status: 'failed',
       provider: 'network',
-      recipient: payload.email || 'ullahsafiullah117@gmail.com',
+      recipient: payload.email || 'techfixpeshawar@gmail.com',
       message: err?.message || 'Network error attempting to send test notification',
       error: err?.message
     };
@@ -1571,7 +1756,7 @@ export async function sendAdminTestEmail(optionsOrEmail?: {
     delivered: true,
     status: 'sent',
     provider: 'smtp',
-    recipient: payload.email || 'ullahsafiullah117@gmail.com',
+    recipient: payload.email || 'techfixpeshawar@gmail.com',
     message: 'Test notification queued and delivered successfully!'
   };
 }
@@ -1586,14 +1771,17 @@ export async function fetchPageSections(): Promise<any> {
     if (res.ok) {
       return await res.json();
     }
-  } catch (err) {}
+    console.warn('[API] fetchPageSections responded with status', res.status);
+  } catch (err) {
+    console.warn('[API] fetchPageSections network failure:', err);
+  }
   return null;
 }
 
 export async function updatePageSection(sectionKey: string, payload: any): Promise<any> {
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}`, {
+    const res = await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1601,14 +1789,21 @@ export async function updatePageSection(sectionKey: string, payload: any): Promi
       },
       body: JSON.stringify(payload)
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] updatePageSection backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] updatePageSection backend error:', err);
+  }
 
   try {
     await setDoc(doc(db, 'page_sections', sectionKey), {
       ...payload,
       updatedAt: new Date().toISOString()
     }, { merge: true });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[API] updatePageSection Firestore update note:', e);
+  }
 
   return { success: true };
 }
@@ -1616,7 +1811,7 @@ export async function updatePageSection(sectionKey: string, payload: any): Promi
 export async function updatePageStatus(sectionKey: string, status: 'published' | 'unpublished'): Promise<any> {
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/admin/page-status/${encodeURIComponent(sectionKey)}`, {
+    const res = await fetch(`/api/admin/page-status/${encodeURIComponent(sectionKey)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1624,14 +1819,21 @@ export async function updatePageStatus(sectionKey: string, status: 'published' |
       },
       body: JSON.stringify({ status })
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] updatePageStatus backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] updatePageStatus backend error:', err);
+  }
 
   try {
     await setDoc(doc(db, 'page_sections', sectionKey), {
       status,
       updatedAt: new Date().toISOString()
     }, { merge: true });
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[API] updatePageStatus Firestore update note:', e);
+  }
 
   return { success: true, status };
 }
@@ -1639,7 +1841,7 @@ export async function updatePageStatus(sectionKey: string, status: 'published' |
 export async function addSectionItem(sectionKey: string, collectionKey: string, item: any): Promise<any> {
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}`, {
+    const res = await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1647,14 +1849,19 @@ export async function addSectionItem(sectionKey: string, collectionKey: string, 
       },
       body: JSON.stringify(item)
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] addSectionItem backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] addSectionItem backend error:', err);
+  }
   return { success: true, item };
 }
 
 export async function updateSectionItem(sectionKey: string, collectionKey: string, itemId: string, item: any): Promise<any> {
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}/${encodeURIComponent(itemId)}`, {
+    const res = await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}/${encodeURIComponent(itemId)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -1662,20 +1869,30 @@ export async function updateSectionItem(sectionKey: string, collectionKey: strin
       },
       body: JSON.stringify(item)
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] updateSectionItem backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] updateSectionItem backend error:', err);
+  }
   return { success: true, item };
 }
 
 export async function deleteSectionItem(sectionKey: string, collectionKey: string, itemId: string): Promise<any> {
   const token = getCachedAdminToken();
   try {
-    await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}/${encodeURIComponent(itemId)}`, {
+    const res = await fetch(`/api/admin/page-sections/${encodeURIComponent(sectionKey)}/${encodeURIComponent(collectionKey)}/${encodeURIComponent(itemId)}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
-  } catch (err) {}
+    if (!res.ok) {
+      console.warn('[API] deleteSectionItem backend returned HTTP', res.status);
+    }
+  } catch (err) {
+    console.warn('[API] deleteSectionItem backend error:', err);
+  }
   return { success: true, itemId };
 }
 
@@ -1693,8 +1910,12 @@ export async function toggleSectionItemStatus(sectionKey: string, collectionKey:
     if (res.ok) {
       const data = await res.json();
       if (data && data.status) newStatus = data.status;
+    } else {
+      console.warn('[API] toggleSectionItemStatus backend returned HTTP', res.status);
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('[API] toggleSectionItemStatus backend error:', err);
+  }
 
   try {
     const secRef = doc(db, 'page_sections', sectionKey);

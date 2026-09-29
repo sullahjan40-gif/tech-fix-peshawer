@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { AdminPanel } from '../AdminPanel';
 import { ServiceItem, SiteSettings } from '../../types';
+import { setCachedAdminToken, clearCachedAdminToken } from '../../utils/api';
 
 interface AdminProtectedRouteProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ interface AdminProtectedRouteProps {
   isFullScreenPage?: boolean;
 }
 
-const DEFAULT_ADMIN_EMAIL = 'ullahsafiullah117@gmail.com';
+const DEFAULT_ADMIN_EMAIL = 'techfixpeshawar@gmail.com';
 
 export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
   isOpen,
@@ -71,40 +72,39 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
       setLoading(true);
       if (user) {
         setCurrentUser(user);
-        // Check if admin email or verify in Firestore
-        const isAuthorizedEmail = 
-          user.email === DEFAULT_ADMIN_EMAIL || 
-          user.email === 'sullahjan40@gmail.com' ||
-          user.email === 'admin@peshawar-techsupport.pk';
+        try {
+          const token = await user.getIdToken();
+          setCachedAdminToken(token);
 
-        if (isAuthorizedEmail) {
-          setIsAdminAuthorized(true);
-          try {
-            const userDocRef = doc(db, 'users', user.uid);
-            await setDoc(userDocRef, {
-              uid: user.uid,
-              email: user.email,
-              role: 'admin',
-              updatedAt: new Date().toISOString()
-            }, { merge: true });
-          } catch (e) {
-            console.log('User doc sync note:', e);
-          }
-        } else {
-          // Check role in Firestore users collection
-          try {
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists() && userDoc.data()?.role === 'admin') {
+          // Authoritative server-side verification (FR-001, FR-002)
+          const res = await fetch('/api/admin/verify-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            }
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success) {
               setIsAdminAuthorized(true);
+              setAuthError('');
             } else {
               setIsAdminAuthorized(false);
               setAuthError('Unauthorized account. Administrator privileges required.');
             }
-          } catch {
+          } else {
             setIsAdminAuthorized(false);
+            setAuthError('Access denied: verified administrator account required.');
           }
+        } catch (e) {
+          console.error('Admin token verification error:', e);
+          setIsAdminAuthorized(false);
+          setAuthError('Unable to verify administrator session.');
         }
       } else {
+        clearCachedAdminToken();
         setCurrentUser(null);
         setIsAdminAuthorized(false);
       }
@@ -156,8 +156,7 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
 
   const handleSignOut = async () => {
     try {
-      sessionStorage.removeItem('admin_session_auth');
-      sessionStorage.removeItem('admin_session_email');
+      clearCachedAdminToken();
       await signOut(auth);
       setIsAdminAuthorized(false);
       setCurrentUser(null);

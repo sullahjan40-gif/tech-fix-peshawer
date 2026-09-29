@@ -113,31 +113,50 @@ export function AdminRequestsAndBookings({
       setScheduledTimeInput(defaultSlot);
       setConfirmSlotInput(defaultSlot);
       setTechnicianNoteInput(`Our technician has received your service request for ${selectedBooking.serviceRequired} (${selectedBooking.deviceType}) and is reaching out to coordinate the visit.`);
+      setCustomerEmailInput(selectedBooking.email || '');
       setActionNotice(null);
     }
   }, [selectedBooking]);
 
+  const [customerEmailInput, setCustomerEmailInput] = useState('');
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   const handleSendConfirmationEmailManual = async () => {
     if (!selectedBooking || isSendingEmail) return;
+    const targetEmail = customerEmailInput.trim() || selectedBooking.email;
+    if (!targetEmail || !targetEmail.includes('@')) {
+      setActionNotice({
+        type: 'error',
+        message: 'Please enter a valid customer email address before dispatching.'
+      });
+      return;
+    }
+    if (targetEmail.toLowerCase().includes('gmil.com')) {
+      setActionNotice({
+        type: 'error',
+        message: `Typo detected in email address ("${targetEmail}"). Did you mean @gmail.com? Please fix the spelling.`
+      });
+      return;
+    }
+
     setIsSendingEmail(true);
     try {
       const res = await sendManualBookingConfirmationEmail(
         selectedBooking.id,
-        confirmSlotInput.trim() || scheduledTimeInput.trim() || selectedBooking.scheduledTime
+        confirmSlotInput.trim() || scheduledTimeInput.trim() || selectedBooking.scheduledTime,
+        targetEmail
       );
-      if (res.success) {
+      if (res.success && res.delivered) {
         setActionNotice({
           type: 'success',
-          message: res.message || `Confirmation email delivered to ${selectedBooking.email}!`,
+          message: res.message || `Confirmation email delivered to ${targetEmail}!`,
           waLink: actionNotice?.waLink,
           waLabel: actionNotice?.waLabel
         });
       } else {
         setActionNotice({
           type: 'error',
-          message: res.error || 'Failed to dispatch confirmation email.'
+          message: res.error || 'Failed to dispatch confirmation email. Check SMTP or Resend credentials in settings.'
         });
       }
     } catch (err: any) {
@@ -866,11 +885,41 @@ export function AdminRequestsAndBookings({
                       />
                     </div>
 
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1 flex items-center justify-between">
+                        <span>Target Customer Email:</span>
+                        {customerEmailInput.toLowerCase().includes('gmil.com') && (
+                          <span className="text-[10px] text-amber-400 font-bold animate-pulse">
+                            ⚠️ Domain Typo (@gmil.com) — Click to fix to @gmail.com
+                          </span>
+                        )}
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="email"
+                          value={customerEmailInput}
+                          onChange={(e) => setCustomerEmailInput(e.target.value)}
+                          placeholder="e.g. customer@gmail.com"
+                          className={`w-full rounded-lg bg-slate-950 border px-3 py-1.5 text-xs text-white focus:outline-none ${
+                            customerEmailInput.toLowerCase().includes('gmil.com')
+                              ? 'border-amber-500 focus:border-amber-400'
+                              : 'border-slate-700 focus:border-emerald-500'
+                          }`}
+                        />
+                        {customerEmailInput.toLowerCase().includes('gmil.com') && (
+                          <button
+                            type="button"
+                            onClick={() => setCustomerEmailInput(customerEmailInput.replace(/@gmil\.com/i, '@gmail.com'))}
+                            className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-bold shrink-0 cursor-pointer"
+                          >
+                            Fix to @gmail.com
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-500/20 text-[11px] text-emerald-200/90 leading-relaxed space-y-1">
                       <div><strong>Channel Control:</strong> Confirm appointment and dispatch via <strong>WhatsApp</strong> or <strong>Manual Email</strong>.</div>
-                      <div className="text-[10px] text-slate-400">
-                        Target Customer Email: {selectedBooking.email ? <span className="text-emerald-300 underline">{selectedBooking.email}</span> : <span className="text-amber-400">None on record</span>}
-                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
@@ -884,27 +933,25 @@ export function AdminRequestsAndBookings({
                       </button>
 
                       <div className="flex items-center gap-2">
-                        {selectedBooking.email && (
-                          <button
-                            type="button"
-                            onClick={handleSendConfirmationEmailManual}
-                            disabled={actionProcessing || isSendingEmail}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow cursor-pointer disabled:opacity-50"
-                            title="Manually dispatch confirmation email to customer"
-                          >
-                            {isSendingEmail ? (
-                              <>
-                                <RefreshCw className="h-3 w-3 animate-spin" />
-                                <span>Sending Email...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Mail className="h-3 w-3" />
-                                <span>Send Confirmation Email</span>
-                              </>
-                            )}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={handleSendConfirmationEmailManual}
+                          disabled={actionProcessing || isSendingEmail || !customerEmailInput.trim()}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow cursor-pointer disabled:opacity-50"
+                          title="Manually dispatch confirmation email to customer"
+                        >
+                          {isSendingEmail ? (
+                            <>
+                              <RefreshCw className="h-3 w-3 animate-spin" />
+                              <span>Sending Email...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Mail className="h-3 w-3" />
+                              <span>Send Confirmation Email</span>
+                            </>
+                          )}
+                        </button>
 
                         <button
                           type="button"

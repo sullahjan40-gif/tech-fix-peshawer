@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { PageConnector } from '../components/PageConnector';
 import { BookingForm } from '../components/BookingForm';
@@ -47,6 +47,20 @@ export function ContactPage({
   const [trackResult, setTrackResult] = useState<any>(null);
   const [trackLoading, setTrackLoading] = useState(false);
   const [trackError, setTrackError] = useState('');
+
+  useEffect(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash : '';
+    if (hash.includes('book') || initialService || initialProblem) {
+      setTimeout(() => {
+        const el = document.getElementById('booking-form-fields') || document.getElementById('booking-form-anchor') || document.getElementById('book-service');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const firstInput = el.querySelector('input');
+          if (firstInput) firstInput.focus();
+        }
+      }, 150);
+    }
+  }, [initialService, initialProblem]);
 
   // Check if entire Contact page is unpublished
   if (pageSections?.pageStatuses?.contact === 'unpublished') {
@@ -180,8 +194,12 @@ export function ContactPage({
             </div>
             <button
               onClick={() => {
-                const el = document.getElementById('booking-form-anchor');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                const el = document.getElementById('booking-form-fields') || document.getElementById('booking-form-anchor') || document.getElementById('book-service');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  const firstInput = el.querySelector('input');
+                  if (firstInput) firstInput.focus();
+                }
               }}
               className="skeuo-btn-primary inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-xs sm:text-sm font-bold text-white shadow-xl cursor-pointer shrink-0"
             >
@@ -269,8 +287,8 @@ export function ContactPage({
               </p>
             </div>
             <div className="mt-4 pt-3 border-t border-cyan-900/50 flex flex-col gap-1.5">
-              <span className="font-mono text-xs font-bold text-cyan-300 truncate" title={settings.email || 'ullahsafiullah117@gmail.com'}>
-                {settings.email || 'ullahsafiullah117@gmail.com'}
+              <span className="font-mono text-xs font-bold text-cyan-300 truncate" title={settings.email || 'techfixpeshawar@gmail.com'}>
+                {settings.email || 'techfixpeshawar@gmail.com'}
               </span>
               <button
                 type="button"
@@ -429,7 +447,7 @@ export function ContactPage({
         isOpen={inquiryModalOpen}
         onClose={() => setInquiryModalOpen(false)}
         whatsappNumber={settings.whatsappNumber}
-        recipientEmail={settings.email || 'ullahsafiullah117@gmail.com'}
+        recipientEmail={settings.email || 'techfixpeshawar@gmail.com'}
       />
     </div>
   );

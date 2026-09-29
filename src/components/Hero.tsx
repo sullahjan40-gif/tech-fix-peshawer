@@ -55,7 +55,17 @@ export function Hero({ settings, onOpenBooking }: HeroProps) {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 w-full sm:w-auto mb-8">
               <button
-                onClick={onOpenBooking}
+                onClick={() => {
+                  onOpenBooking();
+                  setTimeout(() => {
+                    const el = document.getElementById('booking-form-fields') || document.getElementById('booking-form-anchor') || document.getElementById('book-service');
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      const firstInput = el.querySelector('input');
+                      if (firstInput) firstInput.focus();
+                    }
+                  }, 120);
+                }}
                 className="skeuo-btn-primary inline-flex items-center justify-center gap-2.5 rounded-xl px-7 py-3.5 text-sm font-bold text-white shadow-xl cursor-pointer"
               >
                 <Calendar className="h-4 w-4" />

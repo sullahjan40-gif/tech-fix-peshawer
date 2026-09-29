@@ -12,7 +12,7 @@ import {
   Settings, 
   User 
 } from './types/firestore';
-import { fetchInitialData } from './utils/api';
+import { fetchInitialData, setCachedAdminToken, clearCachedAdminToken } from './utils/api';
 import { getWhatsAppLink } from './utils/whatsapp';
 
 import { Navbar } from './components/Navbar';
@@ -72,37 +72,136 @@ const VALID_PAGES = [
 
 function getPageFromHash(hash: string): string {
   if (typeof window !== 'undefined') {
-    if (window.location.pathname === '/admin' || window.location.pathname === '/admin/') {
+    const rawPath = window.location.pathname.toLowerCase().replace(/\/+$/, '');
+    const decodedPath = decodeURIComponent(rawPath);
+    if (
+      decodedPath === '/admin' || 
+      decodedPath === '/techfixpeshawar@gmail.com/admin' ||
+      decodedPath.endsWith('/techfixpeshawar@gmail.com/admin') ||
+      rawPath === '/admin' ||
+      rawPath === '/techfixpeshawar@gmail.com/admin' ||
+      rawPath.endsWith('/techfixpeshawar@gmail.com/admin')
+    ) {
       return 'admin';
     }
   }
-  const clean = hash.replace(/^#\/?/, '').toLowerCase().trim();
-  if (clean === 'admin' || clean === '/admin') return 'admin';
+  const clean = decodeURIComponent(hash).replace(/^#\/?/, '').toLowerCase().trim();
+  if (
+    clean === 'admin' || 
+    clean === '/admin' || 
+    clean === 'techfixpeshawar@gmail.com/admin' || 
+    clean === '/techfixpeshawar@gmail.com/admin' ||
+    clean.endsWith('/techfixpeshawar@gmail.com/admin')
+  ) {
+    return 'admin';
+  }
   if (clean === 'track-request' || clean === 'track') return 'track-request';
   return VALID_PAGES.includes(clean) ? clean : 'home';
 }
 
+// ─── Settings cache helpers ────────────────────────────────────────────────
+// BUG-059 FIX: Version-stamp cache so stale data from old sessions is rejected.
+// Increment CACHE_VERSION whenever the Settings shape changes in a breaking way.
+const SETTINGS_CACHE_KEY = 'techfix_settings_cache';
+const CACHE_VERSION = 2;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Fields that must NEVER be written into client-side storage even if they
+// somehow appear on the Settings object (defence-in-depth against future changes).
+const SECRET_FIELDS: ReadonlyArray<string> = [
+  'resendApiKey', 'gmailAppPassword', 'gmailUser',
+  'resendFromEmail', 'resendTargetEmail', 'adminPassword',
+  'smtpPassword', 'smtpUser', 'apiSecret',
+];
+
+export function clearSettingsCache(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(SETTINGS_CACHE_KEY);
+    }
+  } catch {}
+}
+
+function loadCachedSettings(): Partial<Settings> {
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    if (!raw) return {};
+    const envelope = JSON.parse(raw);
+    // BUG-059: Reject cache if version mismatch
+    if (!envelope || envelope.v !== CACHE_VERSION) {
+      console.info('[Cache] Stale or unversioned settings cache detected; clearing.');
+      localStorage.removeItem(SETTINGS_CACHE_KEY);
+      return {};
+    }
+    // BUG-059: Reject cache if older than TTL
+    if (!envelope.ts || Date.now() - envelope.ts > CACHE_TTL_MS) {
+      console.info('[Cache] Expired settings cache detected; clearing.');
+      localStorage.removeItem(SETTINGS_CACHE_KEY);
+      return {};
+    }
+    return envelope.data ?? {};
+  } catch (err) {
+    // BUG-078 FIX: Record a debug-safe diagnostic and remove corrupt cache entries
+    console.warn('[Cache] Corrupt settings cache JSON detected; purging corrupt entry.', err);
+    try {
+      localStorage.removeItem(SETTINGS_CACHE_KEY);
+    } catch {}
+    return {};
+  }
+}
+
+function persistSettingsCache(s: Partial<Settings>) {
+  try {
+    // Never persist loading/transient state or server-side secrets
+    const { isLoading, createdAt, updatedAt, ...rest } = s as any;
+    // BUG-059: Strip any secret fields that should never be in the browser
+    SECRET_FIELDS.forEach(f => { delete rest[f]; });
+    const envelope = { v: CACHE_VERSION, ts: Date.now(), data: rest };
+    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(envelope));
+  } catch (err) {
+    // BUG-078: Record safe diagnostic if storage fails (e.g. quota exceeded)
+    console.warn('[Cache] Failed to persist settings cache:', err);
+  }
+}
+
+const AUTHORITATIVE_DEFAULTS: Settings = {
+  isLoading: true,
+  businessName: 'TechFix On-Site Computer Services',
+  tagline: 'Contact Online — We Come To You. Professional Computer Support in Peshawar.',
+  phoneNumber: '+92 327 5526107',
+  whatsappNumber: '+92 327 5526107',
+  email: 'techfixpeshawar@gmail.com',
+  businessHours: 'Monday – Saturday: 9:00 AM – 8:00 PM (Emergency Sunday visits by arrangement)',
+  serviceAreaCity: 'Peshawar, Khyber Pakhtunkhwa',
+  technicianName: 'Safiullah',
+  technicianTitle: 'Computer Science & Cybersecurity Practitioner',
+  technicianInstitution: 'University of Agriculture, Peshawar',
+  technicianExperience: '5+ Years Practical Windows & Hardware Diagnostics',
+  technicianBio: 'Hi, I am Safiullah. I am a Computer Science and Cybersecurity learner at the University of Agriculture, Peshawar, with around 5 years of practical experience working with computers and Windows systems.',
+  technicianQuote: 'My goal is simple: solve computer problems efficiently while saving customers the time and inconvenience of taking their computer to a repair shop.',
+  technicianPhoto: (typeof window !== 'undefined' && localStorage.getItem('techfix_technician_photo')) || '',
+  visitFeeStarting: 'Rs. 500',
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  status: 'published'
+};
+
 export default function App() {
-  const [settings, setSettings] = useState<Settings>({
-    isLoading: true,
-    businessName: 'TechFix On-Site Computer Services',
-    tagline: 'Contact Online — We Come To You. Professional Computer Support in Peshawar.',
-    phoneNumber: '0300 0000000',
-    whatsappNumber: '+92 300 0000000',
-    email: 'ullahsafiullah117@gmail.com',
-    businessHours: 'Monday – Saturday: 9:00 AM – 8:00 PM (Emergency Sunday visits by arrangement)',
-    serviceAreaCity: 'Peshawar, Khyber Pakhtunkhwa',
-    technicianName: 'Safiullah',
-    technicianTitle: 'Computer Science & Cybersecurity Practitioner',
-    technicianInstitution: 'University of Agriculture, Peshawar',
-    technicianExperience: '5+ Years Practical Windows & Hardware Diagnostics',
-    technicianBio: 'Hi, I am Safiullah. I am a Computer Science and Cybersecurity learner at the University of Agriculture, Peshawar, with around 5 years of practical experience working with computers and Windows systems.',
-    technicianQuote: 'My goal is simple: solve computer problems efficiently while saving customers the time and inconvenience of taking their computer to a repair shop.',
-    technicianPhoto: (typeof window !== 'undefined' && localStorage.getItem('techfix_technician_photo')) || '',
-    visitFeeStarting: 'Rs. 500',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    status: 'published'
+  // BUG-04 FIX: Seed initial state from localStorage cache so the UI
+  // instantly renders the last-saved admin values (zero flash).
+  // Falls back to authoritative defaults only on first-ever load.
+  const [settings, setSettings] = useState<Settings>(() => {
+    const cached = loadCachedSettings();
+    return {
+      ...AUTHORITATIVE_DEFAULTS,
+      ...cached,
+      // Always start with isLoading true so we know a fresh fetch is in flight
+      isLoading: Object.keys(cached).length === 0,
+      technicianPhoto:
+        (typeof window !== 'undefined' && localStorage.getItem('techfix_technician_photo')) ||
+        cached.technicianPhoto ||
+        '',
+    };
   });
 
   // Track Firestore ServiceRequest, Booking, and User entities
@@ -136,20 +235,21 @@ export default function App() {
         const siteConfigSnap = await getDoc(doc(db, 'settings', 'site_config'));
         if (siteConfigSnap.exists()) {
           firestoreExists = true;
-          firestoreData = siteConfigSnap.data();
-          if (firestoreData.adminPassword) {
-            try {
-              localStorage.setItem('techfix_custom_admin_password', firestoreData.adminPassword);
-            } catch (e) {}
-          }
+          const { adminPassword: _adminPassword, ...safeFirestoreData } = siteConfigSnap.data();
+          firestoreData = safeFirestoreData;
+          const merged = {
+            ...safeFirestoreData,
+            isLoading: false,
+            technicianPhoto: safeFirestoreData.technicianPhoto !== undefined
+              ? safeFirestoreData.technicianPhoto
+              : ''
+          };
           setSettings(prev => ({
             ...prev,
-            ...firestoreData,
-            isLoading: false,
-            technicianPhoto: firestoreData.technicianPhoto !== undefined
-              ? firestoreData.technicianPhoto
-              : (prev.technicianPhoto !== undefined ? prev.technicianPhoto : '')
+            ...merged,
           }));
+          // BUG-04: Persist to cache so next page load is instant (zero flash)
+          persistSettingsCache(merged);
         }
       } catch (fsErr) {
         console.warn('Firestore initial site_config fetch note:', fsErr);
@@ -164,12 +264,15 @@ export default function App() {
             if (firestoreExists && firestoreData) {
               return { ...prev, isLoading: false };
             }
-            return {
+            const apiMerged = {
               ...prev,
               ...data.settings,
               isLoading: false,
               technicianPhoto: prev.technicianPhoto || data.settings.technicianPhoto || ''
             };
+            // BUG-04: Persist API settings to cache (only when Firestore not the source)
+            persistSettingsCache(apiMerged);
+            return apiMerged;
           });
         }
         if (data.services && data.services.length > 0) {
@@ -209,6 +312,9 @@ export default function App() {
     const unsubAuth = auth.onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         try {
+          const idToken = await firebaseUser.getIdToken();
+          setCachedAdminToken(idToken);
+
           const idTokenResult = await firebaseUser.getIdTokenResult();
           const hasAdminClaim = !!idTokenResult.claims.admin;
           const userDoc: User = {
@@ -231,6 +337,7 @@ export default function App() {
           console.warn('Auth token claim check handled:', authErr);
         }
       } else {
+        clearCachedAdminToken();
         setCurrentUser(null);
       }
     });
@@ -287,13 +394,18 @@ export default function App() {
     const unsubSettings = onSnapshot(settingsDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as any;
-        setSettings((prev) => ({
-          ...prev,
+        const snapshotMerge = {
           ...data,
           technicianPhoto: data.technicianPhoto !== undefined
             ? data.technicianPhoto
-            : (prev.technicianPhoto !== undefined ? prev.technicianPhoto : '')
+            : ''
+        };
+        setSettings((prev) => ({
+          ...prev,
+          ...snapshotMerge,
         }));
+        // BUG-04: Keep cache in sync — admin saves instantly propagate to cache
+        persistSettingsCache(snapshotMerge);
       }
     }, (err) => {
       console.warn('Firestore settings snapshot listener handled:', err);
@@ -306,17 +418,19 @@ export default function App() {
     };
   }, []);
 
-  // Listen for browser Back/Forward hash navigation
+  // Listen for browser Back/Forward navigation (both hash and history popstate - BUG-062, BUG-175)
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleLocationChange = () => {
       const page = getPageFromHash(window.location.hash);
       setActivePage(page);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('hashchange', handleLocationChange);
+    window.addEventListener('popstate', handleLocationChange);
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+      window.removeEventListener('popstate', handleLocationChange);
     };
   }, []);
 
@@ -333,9 +447,11 @@ export default function App() {
 
     setActivePage(targetPage);
 
-    // Synchronize URL hash so links can be shared, bookmarked, and backed
+    // Synchronize URL hash and path so links can be shared, bookmarked, and backed
     if (targetPage === 'home') {
-      history.pushState(null, '', window.location.pathname);
+      history.pushState(null, '', '/');
+    } else if (targetPage === 'admin') {
+      window.location.hash = 'techfixpeshawar@gmail.com/admin';
     } else {
       window.location.hash = targetPage;
     }

@@ -19,10 +19,10 @@ export interface EmailNotificationPayload {
   whatsapp_reply_link: string;
 }
 
-export const TARGET_EMAIL = 'ullahsafiullah117@gmail.com';
+export const TARGET_EMAIL = 'techfixpeshawar@gmail.com';
 
 /**
- * Dispatches an email notification to ullahsafiullah117@gmail.com whenever
+ * Dispatches an email notification to techfixpeshawar@gmail.com whenever
  * a new service request or booking is submitted.
  */
 export async function sendServiceNotificationEmail(
@@ -123,10 +123,9 @@ QUICK ACTIONS:
         template_id: emailJsTemplateId,
         user_id: emailJsPublicKey,
         template_params: {
-          to_email: TARGET_EMAIL,
+          ...emailPayload,
           subject: `[NEW BOOKING] ${emailPayload.customer_name} - ${emailPayload.service_required}`,
-          message: emailBodyText,
-          ...emailPayload
+          message: emailBodyText
         }
       })
     });
@@ -147,7 +146,7 @@ QUICK ACTIONS:
 }
 
 /**
- * Dispatches an email notification to ullahsafiullah117@gmail.com whenever
+ * Dispatches an email notification to techfixpeshawar@gmail.com whenever
  * a client or customer submits a query / question or contact message.
  */
 export async function sendCustomerInquiryEmail(inquiry: {

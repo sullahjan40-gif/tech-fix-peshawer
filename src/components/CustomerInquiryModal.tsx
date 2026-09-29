@@ -23,8 +23,8 @@ interface CustomerInquiryModalProps {
 export function CustomerInquiryModal({
   isOpen,
   onClose,
-  whatsappNumber = '923275226107',
-  recipientEmail = 'ullahsafiullah117@gmail.com'
+  whatsappNumber = '923275526107',
+  recipientEmail = 'techfixpeshawar@gmail.com'
 }: CustomerInquiryModalProps) {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');

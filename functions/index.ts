@@ -39,6 +39,16 @@ function createEmailTransporter() {
   });
 }
 
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 /**
  * Build rich HTML email template with all request details
  */
@@ -138,31 +148,31 @@ DIRECT TECHNICIAN ACTION:
     <div class="header">
       <span class="badge ${urgency === 'URGENT' ? 'urgent' : ''}">${urgency} PRIORITY</span>
       <h2 style="margin: 8px 0 0 0; font-size: 20px;">New ${collectionName === 'bookings' ? 'On-Site Booking' : 'Service Request'}</h2>
-      <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.85;">ID: ${docId} | Received: ${new Date(createdAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
+      <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.85;">ID: ${escapeHtml(docId)} | Received: ${new Date(createdAt).toLocaleString('en-PK', { timeZone: 'Asia/Karachi' })}</p>
     </div>
     <div class="body">
       <div class="section">
         <div class="section-title">Customer Information</div>
-        <div class="row"><span class="label">Customer Name</span><span class="value">${customerName}</span></div>
-        <div class="row"><span class="label">Phone</span><span class="value">${phone}</span></div>
-        <div class="row"><span class="label">WhatsApp</span><span class="value">${whatsapp}</span></div>
-        ${customerEmail ? `<div class="row"><span class="label">Customer Email</span><span class="value"><a href="mailto:${customerEmail}" style="color: #60a5fa; text-decoration: none;">${customerEmail}</a></span></div>` : ''}
-        <div class="row"><span class="label">Area</span><span class="value">${area} (Peshawar)</span></div>
-        ${address !== 'On-site / Home / Office' ? `<div class="row"><span class="label">Address</span><span class="value">${address}</span></div>` : ''}
+        <div class="row"><span class="label">Customer Name</span><span class="value">${escapeHtml(customerName)}</span></div>
+        <div class="row"><span class="label">Phone</span><span class="value">${escapeHtml(phone)}</span></div>
+        <div class="row"><span class="label">WhatsApp</span><span class="value">${escapeHtml(whatsapp)}</span></div>
+        ${customerEmail ? `<div class="row"><span class="label">Customer Email</span><span class="value"><a href="mailto:${encodeURI(customerEmail)}" style="color: #60a5fa; text-decoration: none;">${escapeHtml(customerEmail)}</a></span></div>` : ''}
+        <div class="row"><span class="label">Area</span><span class="value">${escapeHtml(area)} (Peshawar)</span></div>
+        ${address !== 'On-site / Home / Office' ? `<div class="row"><span class="label">Address</span><span class="value">${escapeHtml(address)}</span></div>` : ''}
       </div>
 
       <div class="section">
         <div class="section-title">Diagnostic & Hardware Details</div>
-        <div class="row"><span class="label">Device Type</span><span class="value">${deviceType}</span></div>
-        <div class="row"><span class="label">Brand & Model</span><span class="value">${model}</span></div>
-        <div class="row"><span class="label">Service Required</span><span class="value">${service}</span></div>
-        <div class="row"><span class="label">Contains Sensitive/Important Data</span><span class="value" style="color: ${importantData === 'YES' ? '#fbbf24' : '#94a3b8'};">${importantData}</span></div>
-        <div class="row"><span class="label">Preferred Schedule</span><span class="value">${preferredDate} (${preferredTime})</span></div>
+        <div class="row"><span class="label">Device Type</span><span class="value">${escapeHtml(deviceType)}</span></div>
+        <div class="row"><span class="label">Brand & Model</span><span class="value">${escapeHtml(model)}</span></div>
+        <div class="row"><span class="label">Service Required</span><span class="value">${escapeHtml(service)}</span></div>
+        <div class="row"><span class="label">Contains Sensitive/Important Data</span><span class="value" style="color: ${importantData === 'YES' ? '#fbbf24' : '#94a3b8'};">${escapeHtml(importantData)}</span></div>
+        <div class="row"><span class="label">Preferred Schedule</span><span class="value">${escapeHtml(preferredDate)} (${escapeHtml(preferredTime)})</span></div>
       </div>
 
       <div class="section">
         <div class="section-title">Reported Problem Description</div>
-        <div class="problem-box">${problem}</div>
+        <div class="problem-box">${escapeHtml(problem)}</div>
       </div>
 
       <a href="${whatsappReplyLink}" class="btn" target="_blank">Chat with Customer on WhatsApp</a>

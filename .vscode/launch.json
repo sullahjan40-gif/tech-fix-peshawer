@@ -2,11 +2,39 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "msedge", // Change to "chrome" if you prefer Google Chrome
+      "type": "chrome",
       "request": "launch",
-      "name": "Launch Browser against localhost",
-      "url": "http://localhost:8080", // Change 8080 to match your local server port
+      "name": "Frontend: Chrome (localhost:3000)",
+      "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Frontend: Edge (localhost:3000)",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Backend: Express Server (tsx server.ts)",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "server.ts"],
+      "cwd": "${workspaceFolder}",
+      "restart": true,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "3000"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack: Server + Chrome",
+      "configurations": ["Backend: Express Server (tsx server.ts)", "Frontend: Chrome (localhost:3000)"]
     }
   ]
 }

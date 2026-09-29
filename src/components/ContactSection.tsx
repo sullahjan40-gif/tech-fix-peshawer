@@ -188,8 +188,8 @@ export function ContactSection({ settings, serviceAreas, onOpenBooking }: Contac
                 </span>
               </div>
               <div className="text-xs font-mono text-slate-400 uppercase">Email Notifications</div>
-              <div className="text-sm font-bold text-white mt-1 truncate font-mono" title={settings.email || 'ullahsafiullah117@gmail.com'}>
-                {settings.email || 'ullahsafiullah117@gmail.com'}
+              <div className="text-sm font-bold text-white mt-1 truncate font-mono" title={settings.email || 'techfixpeshawar@gmail.com'}>
+                {settings.email || 'techfixpeshawar@gmail.com'}
               </div>
               <p className="text-xs text-slate-300 mt-2">
                 All client questions, custom PC quotes, and service inquiries deliver directly to this inbox.
@@ -206,7 +206,7 @@ export function ContactSection({ settings, serviceAreas, onOpenBooking }: Contac
                 <span>Submit Query Online</span>
               </button>
               <a
-                href={`mailto:${settings.email || 'ullahsafiullah117@gmail.com'}?subject=Computer%20Service%20Inquiry%20-%20Peshawar`}
+                href={`mailto:${settings.email || 'techfixpeshawar@gmail.com'}?subject=Computer%20Service%20Inquiry%20-%20Peshawar`}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl skeuo-btn px-4 py-2 text-xs font-medium text-slate-300 hover:text-white transition-colors font-mono"
               >
                 <span>Direct Mailto Client</span>
@@ -291,7 +291,7 @@ export function ContactSection({ settings, serviceAreas, onOpenBooking }: Contac
         isOpen={inquiryModalOpen}
         onClose={() => setInquiryModalOpen(false)}
         whatsappNumber={settings.whatsappNumber}
-        recipientEmail={settings.email || 'ullahsafiullah117@gmail.com'}
+        recipientEmail={settings.email || 'techfixpeshawar@gmail.com'}
       />
     </section>
   );

@@ -10,6 +10,8 @@ import nodemailer from 'nodemailer';
 import { createServer as createViteServer } from 'vite';
 import { initializeApp as initFirebaseClientApp, getApps as getFirebaseApps } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { initializeApp as initAdminApp, getApps as getAdminApps } from 'firebase-admin/app';
+import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 
 // Time formatting helpers for Pakistan Standard Time (PKT, UTC+5)
 export function getPeshawarTimeString(date: Date | string | number = new Date()): string {
@@ -47,7 +49,7 @@ export function getPeshawarDateTimeString(date: Date | string | number = new Dat
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const DB_FILE = path.join(process.cwd(), 'data', 'database.json');
 
 // ─────────────────────────────────────────────────────────────────
@@ -65,12 +67,172 @@ const FIREBASE_CLIENT_CONFIG = {
 };
 const FIRESTORE_DATABASE_ID = process.env.FIREBASE_DATABASE_ID || "ai-studio-peshawaronsitete-70e75457-6a23-4284-84ee-9bd0ef9c4555";
 
-let _firestoreDb: any = null;
+// Initialize Firebase Admin SDK for cryptographic token verification (FR-001, FR-002)
+if (!getAdminApps().length) {
+  try {
+    initAdminApp({
+      projectId: process.env.FIREBASE_PROJECT_ID || "gen-lang-client-0759593306"
+    });
+    console.log('[FIREBASE ADMIN] ✅ Initialized for token verification');
+  } catch (adminErr) {
+    console.error('[FIREBASE ADMIN] Initialization warning:', adminErr);
+  }
+}
+
+// Authoritative Administrator Accounts (Server-Side Authorization Boundary)
+export const AUTHORIZED_ADMIN_EMAILS = [
+  'techfixpeshawar@gmail.com',
+  'sullahjan40@gmail.com',
+  'ullahsafiullah117@gmail.com',
+  'admin@peshawar-techsupport.pk'
+];
+
+// ─────────────────────────────────────────────────────────────────
+// Typed Database Schema & Core Server State (BUG-071, BUG-072)
+// ─────────────────────────────────────────────────────────────────
+export interface DatabaseSettings {
+  businessName?: string;
+  tagline?: string;
+  phoneNumber?: string;
+  whatsappNumber?: string;
+  email?: string;
+  serviceCity?: string;
+  serviceAreaCity?: string;
+  businessHours?: string;
+  visitFeeStarting?: string;
+  bulkQuoteNote?: string;
+  technicianName?: string;
+  technicianTitle?: string;
+  technicianInstitution?: string;
+  technicianExperience?: string;
+  technicianBio?: string;
+  technicianQuote?: string;
+  technicianPhoto?: string;
+  supportResponseSla?: string;
+  siteStatus?: 'ONLINE' | 'MAINTENANCE';
+  isSitePublished?: boolean;
+  serviceAreas?: string[];
+  socialX?: string;
+  socialLinkedin?: string;
+  socialTiktok?: string;
+  socialFacebook?: string;
+  socialInstagram?: string;
+  socialYoutube?: string;
+  resendApiKey?: string;
+  resendFromEmail?: string;
+  resendTargetEmail?: string;
+  gmailUser?: string;
+  gmailAppPassword?: string;
+  emailProvider?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  status?: string;
+  [key: string]: any;
+}
+
+export interface DatabaseServiceItem {
+  id: string;
+  key?: string;
+  title: string;
+  shortDesc?: string;
+  fullDesc?: string;
+  priceStarting?: string;
+  priceNote?: string;
+  turnaround?: string;
+  icon?: string;
+  status?: string;
+  order?: number;
+  workflow?: string[];
+  [key: string]: any;
+}
+
+export interface DatabaseBooking {
+  id: string;
+  fullName: string;
+  phone: string;
+  area: string;
+  address?: string;
+  serviceRequired: string;
+  deviceType?: string;
+  computerBrandModel?: string;
+  problemDescription?: string;
+  scheduledTime?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  status: 'PENDING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'CONTACTED' | string;
+  createdAt: string;
+  updatedAt?: string;
+  notes?: string;
+  [key: string]: any;
+}
+
+export interface DatabaseInquiry {
+  id: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  area?: string;
+  service?: string;
+  subject?: string;
+  message: string;
+  status: 'NEW' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED' | string;
+  createdAt: string;
+  updatedAt?: string;
+  [key: string]: any;
+}
+
+export interface DatabaseCustomer {
+  id: string;
+  name?: string;
+  fullName?: string;
+  phone: string;
+  email?: string;
+  area?: string;
+  address?: string;
+  bookingCount?: number;
+  totalBookings?: number;
+  totalSpent?: number | string;
+  lastServiceDate?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any;
+}
+
+export interface DatabaseActivityLog {
+  id: string;
+  action: string;
+  details?: string;
+  timestamp: string;
+  adminEmail?: string;
+  ip?: string;
+  [key: string]: any;
+}
+
+export interface DatabaseSchema {
+  settings: DatabaseSettings;
+  services: DatabaseServiceItem[];
+  serviceAreas: Array<{ id: string; name: string; speed?: string; note?: string; status?: string; [key: string]: any } | string>;
+  faqs: Array<{ id: string; question: string; answer: string; order?: number; status?: string; [key: string]: any }>;
+  caseStudies: Array<{ id: string; title: string; clientLocation?: string; problem: string; solution?: string; turnaround?: string; outcome?: string; tags?: string[]; status?: string; [key: string]: any }>;
+  bookings: DatabaseBooking[];
+  inquiries: DatabaseInquiry[];
+  websiteContent: Record<string, any>;
+  categories: Array<{ id: string; title: string; icon?: string; description?: string; services?: string[]; [key: string]: any }>;
+  media: Array<{ id: string; name: string; url: string; size?: number | string; type?: string; uploadedAt?: string; [key: string]: any }>;
+  customers: DatabaseCustomer[];
+  activityLogs: DatabaseActivityLog[];
+  pageSections: Record<string, any>;
+  problemSolutions: Array<Record<string, any>>;
+  problemLeads: Array<Record<string, any>>;
+}
+
+let _firestoreDb: ReturnType<typeof getFirestore> | null = null;
 function getFirestoreInstance() {
   if (_firestoreDb) return _firestoreDb;
   try {
     const existingApps = getFirebaseApps();
-    const fbApp = existingApps.find((a: any) => a.name === 'techfix-server')
+    const fbApp = existingApps.find((a: { name: string }) => a.name === 'techfix-server')
       || initFirebaseClientApp(FIREBASE_CLIENT_CONFIG, 'techfix-server');
     _firestoreDb = getFirestore(fbApp, FIRESTORE_DATABASE_ID);
     return _firestoreDb;
@@ -80,13 +242,13 @@ function getFirestoreInstance() {
   }
 }
 
-async function saveSettingsToFirestore(settings: any): Promise<void> {
+async function saveSettingsToFirestore(settings: Partial<DatabaseSettings>): Promise<void> {
   try {
     const fsDb = getFirestoreInstance();
     if (!fsDb) return;
     const ref = doc(fsDb, 'settings', 'admin');
     // Strip internal/non-serializable keys before saving
-    const clean: any = {};
+    const clean: Record<string, any> = {};
     for (const [k, v] of Object.entries(settings)) {
       if (typeof v !== 'function' && typeof v !== 'undefined') clean[k] = v;
     }
@@ -97,17 +259,17 @@ async function saveSettingsToFirestore(settings: any): Promise<void> {
   }
 }
 
-async function loadSettingsFromFirestore(): Promise<Record<string, any> | null> {
+async function loadSettingsFromFirestore(): Promise<Partial<DatabaseSettings> | null> {
   try {
     const fsDb = getFirestoreInstance();
     if (!fsDb) return null;
     const ref = doc(fsDb, 'settings', 'admin');
     const snap = await getDoc(ref);
     if (snap.exists()) {
-      const data: any = snap.data();
+      const data: Record<string, any> = snap.data();
       delete data._updatedAt;
       console.log('[FIRESTORE] ✅ Settings loaded from Firestore');
-      return data;
+      return data as Partial<DatabaseSettings>;
     }
     console.log('[FIRESTORE] No saved settings in Firestore yet — using defaults');
     return null;
@@ -125,7 +287,9 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '0');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
   res.setHeader('Content-Security-Policy', "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval';");
   next();
 });
@@ -165,8 +329,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 
-// Shared Database Reference (declared early to prevent TDZ)
-let db: any = null;
+// Shared Database Reference (declared early to prevent TDZ; typed via DatabaseSchema)
+let db: DatabaseSchema = null as unknown as DatabaseSchema;
 
 // Dynamic Getters for Resend Credentials & Notification Destination (allows dynamic Admin Panel updates)
 export function getNotificationDestination(): string {
@@ -175,15 +339,24 @@ export function getNotificationDestination(): string {
     db?.settings?.email ||
     process.env.NOTIFICATION_TARGET_EMAIL ||
     process.env.NOTIFICATION_EMAIL ||
-    "ullahsafiullah117@gmail.com"
+    "techfixpeshawar@gmail.com"
   );
+}
+
+export function getTechnicianPhone(): string {
+  return (db?.settings as any)?.phoneNumber || process.env.BUSINESS_PHONE || "0327 5526107";
+}
+
+export function getTechnicianWhatsApp(): string {
+  const raw = (db?.settings as any)?.whatsappNumber || process.env.BUSINESS_WHATSAPP || "923275526107";
+  return raw.replace(/[^0-9]/g, '');
 }
 
 export function getResendApiKey(): string {
   return (
     db?.settings?.resendApiKey ||
     process.env.RESEND_API_KEY ||
-    "re_gCEupJvR_KKnTviBj1fTESPz2rQwXajFZ"
+    ""
   );
 }
 
@@ -195,7 +368,7 @@ export function getResendFromEmail(): string {
   );
 }
 
-export let NOTIFICATION_DESTINATION = "ullahsafiullah117@gmail.com";
+export let NOTIFICATION_DESTINATION = "techfixpeshawar@gmail.com";
 
 // Email Anti-Spam Subject Sanitizer (removes heuristic spam triggers like [TEST], [URGENT], all-caps brackets)
 export function sanitizeEmailSubject(rawSubject: string): string {
@@ -216,7 +389,7 @@ export function sanitizeEmailSubject(rawSubject: string): string {
 export function getEmailTransporter(customUser?: string, customPass?: string) {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '465', 10);
-  const user = (customUser || (db?.settings as any)?.gmailUser || process.env.GMAIL_USER || process.env.SMTP_USER || "ullahsafiullah117@gmail.com").trim();
+  const user = (customUser || (db?.settings as any)?.gmailUser || process.env.GMAIL_USER || process.env.SMTP_USER || "techfixpeshawar@gmail.com").trim();
   const rawPass = (customPass || (db?.settings as any)?.gmailAppPassword || process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "").replace(/['"]/g, '').trim();
   const pass = rawPass ? rawPass.replace(/\s+/g, '') : '';
 
@@ -246,6 +419,7 @@ export function getEmailTransporter(customUser?: string, customPass?: string) {
 
 // CAN-SPAM & Primary Inbox Deliverability Compliant Footer
 function generateEmailFooterHtml(recipientEmail?: string) {
+  const helpline = getTechnicianPhone();
   return `
   <!-- Primary Inbox & Authenticity Verification Footer -->
   <div style="background-color:#090d16; padding:20px 24px; text-align:center; border-top:1px solid #1e293b; font-size:11px; color:#64748b; line-height:1.6;">
@@ -253,13 +427,61 @@ function generateEmailFooterHtml(recipientEmail?: string) {
       TechFix On-Site Computer Support & Hardware Diagnostics
     </p>
     <p style="margin:0 0 6px 0; color:#94a3b8;">
-      University Town, Saddar & Hayatabad, Peshawar, Khyber Pakhtunkhwa, Pakistan • Helpline: +92 312 9876543
+      University Town, Saddar & Hayatabad, Peshawar, Khyber Pakhtunkhwa, Pakistan • Helpline: ${helpline}
     </p>
     <p style="margin:0; font-size:10px; color:#64748b;">
       Authentic transactional service notification${recipientEmail ? ` for ${recipientEmail}` : ''}. To guarantee delivery directly to your Primary Inbox, please mark this message as "Not Spam" or add this sender to your Google Contacts.
     </p>
   </div>
   `;
+}
+
+// Robust HTML escaping for email templates (BUG-044, BUG-045, BUG-046)
+export function escapeHtml(str: any): string {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Image buffer validation via magic bytes and size limits (BUG-030, BUG-031, BUG-032)
+export function validateImageBuffer(buffer: Buffer): { valid: boolean; ext: string } {
+  if (!buffer || buffer.length < 8) return { valid: false, ext: '' };
+
+  // Max upload size 5MB (FR-011)
+  if (buffer.length > 5 * 1024 * 1024) return { valid: false, ext: '' };
+
+  // JPEG: FF D8 FF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { valid: true, ext: 'jpg' };
+  }
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return { valid: true, ext: 'png' };
+  }
+  // GIF: 47 49 46 38
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
+    return { valid: true, ext: 'gif' };
+  }
+  // WebP: RIFF ... WEBP
+  if (buffer.length >= 12 &&
+      buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+    return { valid: true, ext: 'webp' };
+  }
+  // SVG (Icon support with strict anti-XSS script check)
+  const head = buffer.slice(0, 100).toString('utf-8').trim().toLowerCase();
+  if (head.startsWith('<svg') || head.startsWith('<?xml')) {
+    const full = buffer.toString('utf-8').toLowerCase();
+    if (!full.includes('<script') && !full.includes('javascript:') && !full.includes('onload=') && !full.includes('onerror=')) {
+      return { valid: true, ext: 'svg' };
+    }
+  }
+
+  return { valid: false, ext: '' };
 }
 
 // Branded HTML Email Generator
@@ -291,7 +513,7 @@ function generateBrandedEmailHtml({
     ? (whatsapp || cleanPhone).slice(1)
     : (whatsapp || cleanPhone);
   const waReplyLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hello ${clientName}, this is Safiullah from TechFix Peshawar following up on your inquiry about ${subject || service || 'computer service'}.`)}`;
-  const mailtoLink = email ? `mailto:${email}?subject=${encodeURIComponent(`Re: ${subject || service || 'Computer Service Inquiry - TechFix Peshawar'}`)}&body=${encodeURIComponent(`Hello ${clientName},\n\nThank you for contacting TechFix Peshawar regarding your request.\n\n`)}` : '';
+  const mailtoLink = email ? `mailto:${encodeURI(email)}?subject=${encodeURIComponent(`Re: ${subject || service || 'Computer Service Inquiry - TechFix Peshawar'}`)}&body=${encodeURIComponent(`Hello ${clientName},\n\nThank you for contacting TechFix Peshawar regarding your request.\n\n`)}` : '';
 
   return `
   <!DOCTYPE html>
@@ -326,7 +548,7 @@ function generateBrandedEmailHtml({
             Subject / Service Requested
           </div>
           <div style="font-size:17px; font-weight:bold; color:#38bdf8;">
-            ${subject || service || 'General Computer Repair / Service Query'}
+            ${escapeHtml(subject || service || 'General Computer Repair / Service Query')}
           </div>
         </div>
 
@@ -335,32 +557,32 @@ function generateBrandedEmailHtml({
           <tbody>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; width:150px; font-weight:600;">Client Name:</td>
-              <td style="padding:10px 0; color:#ffffff; font-weight:700;">${clientName}</td>
+              <td style="padding:10px 0; color:#ffffff; font-weight:700;">${escapeHtml(clientName)}</td>
             </tr>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Email:</td>
               <td style="padding:10px 0;">
-                ${email ? `<a href="mailto:${email}" style="color:#38bdf8; text-decoration:none; font-weight:600;">${email}</a>` : '<span style="color:#64748b;">Not provided</span>'}
+                ${email ? `<a href="mailto:${encodeURI(email)}" style="color:#38bdf8; text-decoration:none; font-weight:600;">${escapeHtml(email)}</a>` : '<span style="color:#64748b;">Not provided</span>'}
               </td>
             </tr>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Phone / WhatsApp:</td>
               <td style="padding:10px 0;">
-                <a href="tel:${phone}" style="color:#34d399; text-decoration:none; font-weight:bold; margin-right:12px;">${phone}</a>
+                <a href="tel:${cleanPhone}" style="color:#34d399; text-decoration:none; font-weight:bold; margin-right:12px;">${escapeHtml(phone)}</a>
                 <a href="${waReplyLink}" style="display:inline-block; font-size:11px; background-color:#065f46; color:#a7f3d0; padding:2px 8px; border-radius:6px; text-decoration:none; font-weight:bold;">WhatsApp</a>
               </td>
             </tr>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Subject / Service:</td>
-              <td style="padding:10px 0; color:#f1f5f9; font-weight:600;">${subject || service || 'Computer Diagnostics & Support'}</td>
+              <td style="padding:10px 0; color:#f1f5f9; font-weight:600;">${escapeHtml(subject || service || 'Computer Diagnostics & Support')}</td>
             </tr>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Budget / Quote:</td>
-              <td style="padding:10px 0; color:#fbbf24; font-weight:bold;">${budget || 'Pending On-Site Inspection (From Rs. 500)'}</td>
+              <td style="padding:10px 0; color:#fbbf24; font-weight:bold;">${escapeHtml(budget || 'Pending On-Site Inspection (From Rs. 500)')}</td>
             </tr>
             <tr style="border-bottom:1px solid #1e293b;">
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Location / Area:</td>
-              <td style="padding:10px 0; color:#f1f5f9;">${area || 'Peshawar'}</td>
+              <td style="padding:10px 0; color:#f1f5f9;">${escapeHtml(area || 'Peshawar')}</td>
             </tr>
             <tr>
               <td style="padding:10px 0; color:#94a3b8; font-weight:600;">Submitted Time:</td>
@@ -374,7 +596,7 @@ function generateBrandedEmailHtml({
           <div style="font-size:11px; font-weight:bold; text-transform:uppercase; letter-spacing:1px; color:#94a3b8; margin-bottom:8px;">
             Message & Problem Description
           </div>
-          <div style="font-size:14px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap;">${message}</div>
+          <div style="font-size:14px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap;">${escapeHtml(message)}</div>
         </div>
 
         <!-- High Contrast CTA Action Buttons -->
@@ -440,9 +662,8 @@ function generateAppointmentConfirmedEmailHtml({
   booking: any;
   scheduledTime: string;
 }) {
-  const cleanPhone = (booking.phone || '').replace(/[^0-9]/g, '');
-  const techWa = '923440940443';
-  const techPhone = '0344 0940443';
+  const techWa = getTechnicianWhatsApp();
+  const techPhone = getTechnicianPhone();
   const waTechLink = `https://wa.me/${techWa}?text=${encodeURIComponent(`Hello Safiullah! I received my appointment confirmation (#${booking.id}) for ${scheduledTime}.`)}`;
 
   return `
@@ -588,8 +809,8 @@ function generateTechnicianContactEmailHtml({
   booking: any;
   technicianNote?: string;
 }) {
-  const techWa = '923440940443';
-  const techPhone = '0344 0940443';
+  const techWa = getTechnicianWhatsApp();
+  const techPhone = getTechnicianPhone();
   const waTechLink = `https://wa.me/${techWa}?text=${encodeURIComponent(`Hello Safiullah! I received your message regarding my service request (#${booking.id}).`)}`;
 
   return `
@@ -731,7 +952,7 @@ export async function sendNotificationEmail({
   const resendApiKey = (apiKey && apiKey.trim()) || getResendApiKey();
   const fromAddr = (from && from.trim()) || getResendFromEmail();
 
-  const currentGmailUser = (gmailUser || (db?.settings as any)?.gmailUser || process.env.GMAIL_USER || 'ullahsafiullah117@gmail.com').trim();
+  const currentGmailUser = (gmailUser || (db?.settings as any)?.gmailUser || process.env.GMAIL_USER || 'techfixpeshawar@gmail.com').trim();
   const currentGmailAppPass = (gmailAppPassword || (db?.settings as any)?.gmailAppPassword || process.env.GMAIL_APP_PASSWORD || '').trim();
 
   console.log(`[EMAIL DISPATCH] Mode: ${activeProvider.toUpperCase()} | Target: ${recipient} | Resend From: "${fromAddr}" | Gmail From: "${currentGmailUser}" | Subject: "${cleanSubject}"`);
@@ -904,10 +1125,10 @@ export async function sendNotificationEmail({
     console.warn(`[PROVIDER C: FORMSUBMIT EXCEPTION]`, err?.message);
   }
 
-  // Provider D: Safe Logging Fallback (no 500 error, details preserved safely)
+  // Provider D: Safe Logging Fallback (no unhandled 500 error, details preserved safely in logs)
   console.log(`[PROVIDER D: SAFE LOGGING FALLBACK] Lead details logged for administrator ${recipient}`);
   return {
-    success: true,
+    success: false,
     status: lastError ? 'failed' : 'credentials_pending',
     provider: 'logged',
     sentTo: recipient,
@@ -954,9 +1175,9 @@ function ensureDbDirectory() {
 
 const defaultData = {
   settings: {
-    whatsappNumber: "923129876543",
-    phoneNumber: "+92 312 9876543",
-    email: "ullahsafiullah117@gmail.com",
+    whatsappNumber: "923275526107",
+    phoneNumber: "+92 327 5526107",
+    email: "techfixpeshawar@gmail.com",
     serviceCity: "Peshawar, Khyber Pakhtunkhwa, Pakistan",
     businessHours: "Monday – Saturday: 9:00 AM – 8:30 PM (Urgent On-Site Visits Available)",
     visitFeeStarting: "From Rs. 500",
@@ -1950,7 +2171,9 @@ const defaultData = {
         { id: 'area-8', name: 'Dalazak Road & Kohat Road', speed: '45 - 65 Mins', note: 'Scheduled Visits', status: 'published' }
       ]
     }
-  }
+  },
+  problemSolutions: [],
+  problemLeads: []
 };
 
 // In-memory cache + file sync
@@ -1980,9 +2203,19 @@ function loadDb() {
         problemLeads: Array.isArray(parsed.problemLeads) ? parsed.problemLeads : []
       };
     } catch (err) {
-      console.error("Error reading database file, using defaults:", err);
+      console.error("[CRITICAL] Error reading/parsing database file:", err);
+      // Backup corrupted file to prevent permanent data loss (BUG-051, BUG-052)
+      try {
+        if (fs.existsSync(DB_FILE)) {
+          const corruptedBackup = `${DB_FILE}.corrupted-${Date.now()}`;
+          fs.copyFileSync(DB_FILE, corruptedBackup);
+          console.error(`[CRITICAL] Corrupted database backed up to: ${corruptedBackup}`);
+        }
+      } catch (backupErr) {
+        console.error("Failed to backup corrupted database file:", backupErr);
+      }
       db = { ...defaultData };
-      saveDb();
+      // DO NOT call saveDb() here to avoid overwriting corrupted database on disk!
     }
   } else {
     db = { ...defaultData };
@@ -1990,10 +2223,13 @@ function loadDb() {
   }
 }
 
+// Atomic file persistence using temp file and rename (BUG-053, BUG-054)
 function saveDb() {
   ensureDbDirectory();
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+    const tempFile = `${DB_FILE}.${Date.now()}.${Math.random().toString(36).substring(2)}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(db, null, 2), 'utf-8');
+    fs.renameSync(tempFile, DB_FILE);
   } catch (err) {
     console.error("Error saving database file:", err);
   }
@@ -2027,10 +2263,21 @@ const firestoreReady: Promise<void> = new Promise(resolve => { _firestoreReadyRe
   }
 })();
 
-// Dynamic file server and auto-recovery for uploaded assets
+// Dynamic file server and auto-recovery for uploaded assets (BUG-027, BUG-028, BUG-029)
 app.get('/uploads/:filename', (req, res, next) => {
-  const filename = req.params.filename;
-  const filePath = path.join(UPLOADS_DIR, filename);
+  const rawFilename = req.params.filename || '';
+  const safeFilename = path.basename(rawFilename);
+
+  // Strict path traversal and characters check
+  if (!safeFilename || safeFilename !== rawFilename || safeFilename.includes('..') || /[\/\\]/.test(rawFilename)) {
+    return res.status(400).json({ error: "Invalid filename format." });
+  }
+
+  const filePath = path.resolve(UPLOADS_DIR, safeFilename);
+  const resolvedUploadsDir = path.resolve(UPLOADS_DIR);
+  if (!filePath.startsWith(resolvedUploadsDir)) {
+    return res.status(403).json({ error: "Access denied." });
+  }
   
   if (fs.existsSync(filePath)) {
     res.setHeader('Cache-Control', 'public, max-age=86400');
@@ -2038,8 +2285,8 @@ app.get('/uploads/:filename', (req, res, next) => {
   }
 
   // Auto-recovery: Check if image exists in db.media or db.settings
-  const targetUrl = `/uploads/${filename}`;
-  const found = db.media?.find((m: any) => m.url === targetUrl || m.url?.endsWith(`/${filename}`));
+  const targetUrl = `/uploads/${safeFilename}`;
+  const found = db.media?.find((m: any) => m.url === targetUrl || m.url?.endsWith(`/${safeFilename}`));
   const dataUrlCandidate = found?.dataUrl || (db.settings?.technicianPhoto?.startsWith('data:image/') ? db.settings.technicianPhoto : null);
   
   if (dataUrlCandidate && dataUrlCandidate.startsWith('data:image/')) {
@@ -2074,10 +2321,19 @@ app.get('/api/data', async (req, res) => {
     firestoreReady,
     new Promise(resolve => setTimeout(resolve, 3000)) // max 3s wait, then serve anyway
   ]);
+  // Strip sensitive credentials from public API response (FR-018)
+  const {
+    resendApiKey: _resendApiKey,
+    gmailAppPassword: _gmailAppPassword,
+    gmailUser: _gmailUser,
+    adminPassword: _adminPassword,
+    ...publicSettings
+  } = (db.settings || {}) as any;
+
   res.json({
     services: db.services.filter(s => s.status === 'active'),
     faqs: db.faqs,
-    settings: db.settings,
+    settings: publicSettings,
     serviceAreas: db.serviceAreas,
     caseStudies: db.caseStudies,
     websiteContent: db.websiteContent,
@@ -2109,30 +2365,57 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
     containsImportantData
   } = req.body;
 
-  if (!fullName || !phone || !problemDescription || !email || !String(email).trim()) {
-    return res.status(400).json({ error: "Please provide Full Name, Email Address, Phone Number, and Problem Description." });
+  if (!fullName || !phone || !problemDescription || !email || !String(email).trim() || !computerBrandModel || !String(computerBrandModel).trim()) {
+    return res.status(400).json({ error: "Please provide Full Name, Email Address, Phone Number, Computer Brand & Model, and Problem Description." });
   }
 
+  const cleanFullName = String(fullName).trim();
+  const cleanPhone = String(phone).trim();
   const cleanEmail = String(email).trim();
+  const cleanComputerBrandModel = String(computerBrandModel).trim();
+  const cleanProblemDescription = String(problemDescription).trim();
+
+  // Input length & format validation (BUG-086, BUG-087, BUG-088)
+  if (cleanFullName.length > 100) return res.status(400).json({ error: "Full Name exceeds 100 characters." });
+  if (cleanPhone.length > 30) return res.status(400).json({ error: "Phone number exceeds 30 characters." });
+  if (cleanEmail.length > 120) return res.status(400).json({ error: "Email exceeds 120 characters." });
+  if (cleanComputerBrandModel.length > 100) return res.status(400).json({ error: "Computer Brand & Model exceeds 100 characters." });
+  if (cleanProblemDescription.length > 2000) return res.status(400).json({ error: "Problem description exceeds 2000 characters." });
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(cleanEmail)) {
     return res.status(400).json({ error: "Please provide a valid Email Address for instant confirmation." });
   }
 
+  // Duplicate submission protection (BUG-093, BUG-094, BUG-184)
+  const normalizedPhone = cleanPhone.replace(/[^0-9]/g, '');
+  const existingRecent = (db.bookings || []).find((b: any) =>
+    (b.phone || '').replace(/[^0-9]/g, '') === normalizedPhone &&
+    b.problemDescription === cleanProblemDescription &&
+    (Date.now() - new Date(b.createdAt).getTime()) < 30000
+  );
+  if (existingRecent) {
+    return res.status(200).json({
+      success: true,
+      booking: existingRecent,
+      message: "Your request has already been received. We will contact you shortly to confirm."
+    });
+  }
+
   const newBooking = {
     id: `PSH-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
     createdAt: new Date().toISOString(),
-    fullName: String(fullName).trim(),
+    fullName: cleanFullName,
     email: cleanEmail,
-    phone: String(phone).trim(),
-    whatsapp: String(whatsapp || phone).trim(),
-    area: String(area || "Peshawar").trim(),
-    deviceType: deviceType || "Laptop",
-    computerBrandModel: String(computerBrandModel || "").trim(),
-    serviceRequired: String(serviceRequired || "General Troubleshooting").trim(),
-    problemDescription: String(problemDescription).trim(),
-    preferredDate: preferredDate || new Date().toISOString().split('T')[0],
-    preferredTime: preferredTime || "Morning (10 AM - 1 PM)",
+    phone: cleanPhone,
+    whatsapp: String(whatsapp || phone).trim().slice(0, 30),
+    area: String(area || "Peshawar").trim().slice(0, 100),
+    deviceType: String(deviceType || "Laptop").slice(0, 50),
+    computerBrandModel: String(computerBrandModel || "").trim().slice(0, 100),
+    serviceRequired: String(serviceRequired || "General Troubleshooting").trim().slice(0, 150),
+    problemDescription: cleanProblemDescription,
+    preferredDate: String(preferredDate || new Date().toISOString().split('T')[0]).slice(0, 30),
+    preferredTime: String(preferredTime || "Morning (10 AM - 1 PM)").slice(0, 50),
     urgency: urgency === "Urgent" ? "Urgent" : "Normal",
     containsImportantData: containsImportantData === "YES" ? "YES" : "NO",
     status: "NEW",
@@ -2154,10 +2437,10 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
     budget: "Pending On-Site Inspection (From Rs. 500)",
     message: `Problem: ${newBooking.problemDescription}\nDevice: ${newBooking.deviceType} ${newBooking.computerBrandModel || ''}\nSchedule: ${newBooking.preferredDate} (${newBooking.preferredTime})\nUrgency: ${newBooking.urgency}\nCritical Data: ${newBooking.containsImportantData}`,
     status: "NEW",
-    emailNotificationStatus: "sent",
+    emailNotificationStatus: "queued",
     emailNotificationSentTo: NOTIFICATION_DESTINATION,
     emailNotificationSentAt: new Date().toISOString(),
-    emailNotificationProvider: "smtp",
+    emailNotificationProvider: "pending",
     createdAt: newBooking.createdAt,
     preferredDate: newBooking.preferredDate,
     preferredTime: newBooking.preferredTime,
@@ -2213,8 +2496,8 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
   });
 
   // Trigger technician email notification alert
-  const cleanPhone = (newBooking.phone || '').replace(/[^0-9]/g, '');
-  const waNumber = cleanPhone.startsWith('0') ? '92' + cleanPhone.slice(1) : cleanPhone.startsWith('+') ? cleanPhone.slice(1) : cleanPhone;
+  const digitsPhone = (newBooking.phone || '').replace(/[^0-9]/g, '');
+  const waNumber = digitsPhone.startsWith('0') ? '92' + digitsPhone.slice(1) : digitsPhone.startsWith('+') ? digitsPhone.slice(1) : digitsPhone;
   const waReplyLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hello ${newBooking.fullName}, this is Safiullah from TechFix Peshawar regarding your ${newBooking.serviceRequired} request.`)}`;
 
   const bookingEmailHtml = `
@@ -2230,34 +2513,44 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
         <p style="margin: 0; font-size: 18px; font-weight: bold; color: #38bdf8; font-family: monospace;">${newBooking.id}</p>
       </div>
 
+      <!-- Prominent Computer Brand & Model Card for Technician Safiullah -->
+      <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.1)); border: 1px solid rgba(245, 158, 11, 0.5); border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;">
+        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #fbbf24; margin-bottom: 4px;">
+          💻 Computer Brand & Model
+        </div>
+        <div style="font-size: 17px; font-weight: 800; color: #ffffff;">
+          ${escapeHtml(newBooking.computerBrandModel)} <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">(${escapeHtml(newBooking.deviceType)})</span>
+        </div>
+      </div>
+
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px; width: 140px;">Customer:</td>
-          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px; font-weight: bold;">${newBooking.fullName}</td>
+          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px; font-weight: bold;">${escapeHtml(newBooking.fullName)}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Primary Phone:</td>
-          <td style="padding: 8px 0; color: #38bdf8; font-size: 14px; font-weight: bold;"><a href="tel:${newBooking.phone}" style="color: #38bdf8; text-decoration: none;">${newBooking.phone}</a></td>
+          <td style="padding: 8px 0; color: #38bdf8; font-size: 14px; font-weight: bold;"><a href="tel:${escapeHtml(newBooking.phone)}" style="color: #38bdf8; text-decoration: none;">${escapeHtml(newBooking.phone)}</a></td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">WhatsApp:</td>
-          <td style="padding: 8px 0; color: #34d399; font-size: 14px; font-weight: bold;"><a href="${waReplyLink}" style="color: #34d399; text-decoration: none;">${newBooking.whatsapp}</a></td>
+          <td style="padding: 8px 0; color: #34d399; font-size: 14px; font-weight: bold;"><a href="${waReplyLink}" style="color: #34d399; text-decoration: none;">${escapeHtml(newBooking.whatsapp)}</a></td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Area / Sector:</td>
-          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px; font-weight: bold;">${newBooking.area} (Peshawar)</td>
+          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px; font-weight: bold;">${escapeHtml(newBooking.area)} (Peshawar)</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Service Required:</td>
-          <td style="padding: 8px 0; color: #fbbf24; font-size: 14px; font-weight: bold;">${newBooking.serviceRequired}</td>
+          <td style="padding: 8px 0; color: #fbbf24; font-size: 14px; font-weight: bold;">${escapeHtml(newBooking.serviceRequired)}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Device & Model:</td>
-          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px;">${newBooking.deviceType} ${newBooking.computerBrandModel ? `— ${newBooking.computerBrandModel}` : ''}</td>
+          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px;">${escapeHtml(newBooking.deviceType)} ${newBooking.computerBrandModel ? `— ${escapeHtml(newBooking.computerBrandModel)}` : ''}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Preferred Schedule:</td>
-          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px;">${newBooking.preferredDate} (${newBooking.preferredTime})</td>
+          <td style="padding: 8px 0; color: #f8fafc; font-size: 14px;">${escapeHtml(newBooking.preferredDate)} (${escapeHtml(newBooking.preferredTime)})</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #94a3b8; font-size: 14px;">Urgency:</td>
@@ -2275,7 +2568,7 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
 
       <div style="background-color: #1e293b; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
         <p style="margin: 0 0 8px 0; font-size: 12px; color: #94a3b8; text-transform: uppercase; font-weight: bold;">Problem Description</p>
-        <p style="margin: 0; font-size: 14px; color: #e2e8f0; line-height: 1.5; white-space: pre-wrap;">${newBooking.problemDescription}</p>
+        <p style="margin: 0; font-size: 14px; color: #e2e8f0; line-height: 1.5; white-space: pre-wrap;">${escapeHtml(newBooking.problemDescription)}</p>
       </div>
 
       <div style="text-align: center;">
@@ -2294,11 +2587,11 @@ app.post('/api/bookings', publicApiRateLimiter, (req, res) => {
 🔔 NEW ON-SITE SERVICE REQUEST / BOOKING
 ID: ${newBooking.id}
 Customer: ${newBooking.fullName}
+Computer Brand & Model: ${newBooking.computerBrandModel} (${newBooking.deviceType})
 Phone: ${newBooking.phone}
 WhatsApp: ${newBooking.whatsapp}
 Area: ${newBooking.area} (Peshawar)
 Service: ${newBooking.serviceRequired}
-Device: ${newBooking.deviceType} ${newBooking.computerBrandModel || ''}
 Urgency: ${newBooking.urgency}
 Important Data: ${newBooking.containsImportantData}
 Preferred Slot: ${newBooking.preferredDate} - ${newBooking.preferredTime}
@@ -2311,13 +2604,21 @@ WhatsApp Quick Reply:
 ${waReplyLink}
 `;
 
-  // 1. Dispatch technician alert notification
+  // 1. Dispatch technician alert notification with accurate delivery tracking (FR-015)
   dispatchEmail({
     to: NOTIFICATION_DESTINATION,
     subject: `[${newBooking.urgency.toUpperCase()}] New Booking: ${newBooking.fullName} (${newBooking.area}) - ${getPeshawarShortTimeString()}`,
     html: bookingEmailHtml,
     text: bookingEmailText
-  }).catch(err => console.error("Technician email dispatch catch:", err));
+  }).then(res => {
+    newLead.emailNotificationStatus = res.status;
+    newLead.emailNotificationProvider = res.provider;
+    saveDb();
+  }).catch(err => {
+    console.error("Technician email dispatch catch:", err);
+    newLead.emailNotificationStatus = 'failed';
+    saveDb();
+  });
 
   // 2. Automated Confirmation Email directly to the Customer (if customer provided an email address)
   if (newBooking.email && newBooking.email.includes('@')) {
@@ -2348,7 +2649,7 @@ ${waReplyLink}
         <!-- Body -->
         <div style="padding: 28px 24px;">
           <p style="margin:0 0 16px 0; font-size:15px; color:#e2e8f0; line-height:1.6;">
-            Hello <strong>${newBooking.fullName}</strong>,
+            Hello <strong>${escapeHtml(newBooking.fullName)}</strong>,
           </p>
           <p style="margin:0 0 20px 0; font-size:14px; color:#94a3b8; line-height:1.6;">
             Thank you for booking with TechFix Peshawar! We have successfully received your on-site service request. Our head technician, <strong>Safiullah</strong>, has been alerted and will contact you shortly to review the issue and confirm our technician's arrival time.
@@ -2369,19 +2670,19 @@ ${waReplyLink}
             <tbody>
               <tr style="border-bottom:1px solid #1e293b;">
                 <td style="padding:10px 0; color:#94a3b8; width:140px;">Service:</td>
-                <td style="padding:10px 0; color:#fbbf24; font-weight:bold;">${newBooking.serviceRequired}</td>
+                <td style="padding:10px 0; color:#fbbf24; font-weight:bold;">${escapeHtml(newBooking.serviceRequired)}</td>
               </tr>
               <tr style="border-bottom:1px solid #1e293b;">
                 <td style="padding:10px 0; color:#94a3b8;">Device:</td>
-                <td style="padding:10px 0; color:#f1f5f9;">${newBooking.deviceType} ${newBooking.computerBrandModel ? `(${newBooking.computerBrandModel})` : ''}</td>
+                <td style="padding:10px 0; color:#f1f5f9;">${escapeHtml(newBooking.deviceType)} ${newBooking.computerBrandModel ? `(${escapeHtml(newBooking.computerBrandModel)})` : ''}</td>
               </tr>
               <tr style="border-bottom:1px solid #1e293b;">
                 <td style="padding:10px 0; color:#94a3b8;">Location / Area:</td>
-                <td style="padding:10px 0; color:#f1f5f9;">${newBooking.area} (Peshawar)</td>
+                <td style="padding:10px 0; color:#f1f5f9;">${escapeHtml(newBooking.area)} (Peshawar)</td>
               </tr>
               <tr style="border-bottom:1px solid #1e293b;">
                 <td style="padding:10px 0; color:#94a3b8;">Preferred Window:</td>
-                <td style="padding:10px 0; color:#f1f5f9;">${newBooking.preferredDate} — ${newBooking.preferredTime}</td>
+                <td style="padding:10px 0; color:#f1f5f9;">${escapeHtml(newBooking.preferredDate)} — ${escapeHtml(newBooking.preferredTime)}</td>
               </tr>
               <tr style="border-bottom:1px solid #1e293b;">
                 <td style="padding:10px 0; color:#94a3b8;">Data Safety Alert:</td>
@@ -2401,18 +2702,18 @@ ${waReplyLink}
             <div style="font-size:11px; font-weight:bold; color:#94a3b8; text-transform:uppercase; margin-bottom:6px;">
               Reported Computer Issue
             </div>
-            <div style="font-size:13px; color:#e2e8f0; line-height:1.5; white-space:pre-wrap;">${newBooking.problemDescription}</div>
+            <div style="font-size:13px; color:#e2e8f0; line-height:1.5; white-space:pre-wrap;">${escapeHtml(newBooking.problemDescription)}</div>
           </div>
 
           <!-- What Happens Next Callout -->
           <div style="background-color:rgba(14, 165, 233, 0.08); border:1px solid rgba(14, 165, 233, 0.3); border-radius:10px; padding:14px 16px; margin-bottom:24px; font-size:13px; line-height:1.6; color:#bae6fd;">
-            <strong>What happens next?</strong> Submitting this request allows our technician to prep tools & replacement parts. We will call or WhatsApp you at <strong>${newBooking.phone}</strong> to confirm the exact address and arrival slot before dispatching.
+            <strong>What happens next?</strong> Submitting this request allows our technician to prep tools & replacement parts. We will call or WhatsApp you at <strong>${escapeHtml(newBooking.phone)}</strong> to confirm the exact address and arrival slot before dispatching.
           </div>
 
           <!-- Direct WhatsApp Contact Button -->
           <div style="text-align:center; padding-top:6px;">
-            <a href="https://wa.me/923275226107?text=${encodeURIComponent(`Hello Safiullah! I received my booking confirmation (${newBooking.id}) for ${newBooking.serviceRequired}.`)}" style="display:inline-block; background-color:#059669; color:#ffffff; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:10px; font-size:14px; box-shadow:0 4px 14px rgba(5, 150, 105, 0.4);">
-              💬 Chat with Technician on WhatsApp (0327 5226107)
+            <a href="https://wa.me/${getTechnicianWhatsApp()}?text=${encodeURIComponent(`Hello Safiullah! I received my booking confirmation (${newBooking.id}) for ${newBooking.serviceRequired}.`)}" style="display:inline-block; background-color:#059669; color:#ffffff; text-decoration:none; padding:12px 24px; font-weight:700; border-radius:10px; font-size:14px; box-shadow:0 4px 14px rgba(5, 150, 105, 0.4);">
+              💬 Chat with Technician on WhatsApp (${getTechnicianPhone()})
             </a>
           </div>
 
@@ -2420,7 +2721,7 @@ ${waReplyLink}
 
         <!-- Footer -->
         <div style="background-color:#090d16; padding:18px 24px; text-align:center; border-top:1px solid #1e293b; font-size:12px; color:#64748b;">
-          TechFix On-Site Computer Repair & IT Support • Peshawar, KP • Helpline: +92 327 5226107
+          TechFix On-Site Computer Repair & IT Support • Peshawar, KP • Helpline: ${getTechnicianPhone()}
         </div>
 
       </div>
@@ -2443,7 +2744,7 @@ Details:
 - Submitted: ${getPeshawarDateTimeString(newBooking.createdAt)} (PKT)
 
 Our technician (Safiullah) will contact you at ${newBooking.phone} shortly to confirm the appointment.
-Helpline / WhatsApp: +92 327 5226107
+Helpline / WhatsApp: ${getTechnicianPhone()}
     `.trim();
 
     // Automatic customer email disabled per admin specification.
@@ -2468,21 +2769,25 @@ Helpline / WhatsApp: +92 327 5226107
   });
 });
 
-// Endpoint to send/relay email notifications to ullahsafiullah117@gmail.com
-app.post('/api/notify-email', async (req, res) => {
-  const { recipient, subject, bodyText, payload } = req.body;
-  const targetEmail = recipient || NOTIFICATION_DESTINATION;
+// Endpoint to send/relay email notifications (strictly internal, anti-relay - BUG-036, BUG-037, BUG-038)
+app.post('/api/notify-email', publicApiRateLimiter, async (req, res) => {
+  const { subject, bodyText, payload } = req.body;
+  // Disallow arbitrary recipient to prevent open email relay (BUG-036, BUG-037, BUG-038)
+  const targetEmail = getNotificationDestination();
+
+  const cleanSubject = subject ? String(subject).slice(0, 150) : `New PC Service Alert: ${payload?.customer_name ? escapeHtml(payload.customer_name) : 'Customer'}`;
+  const cleanText = bodyText ? String(bodyText).slice(0, 4000) : JSON.stringify(payload || {}, null, 2);
 
   const result = await dispatchEmail({
     to: targetEmail,
-    subject: subject || `New PC Service Alert: ${payload?.customer_name || 'Customer'}`,
-    text: bodyText || JSON.stringify(payload, null, 2)
+    subject: cleanSubject,
+    text: cleanText
   });
 
   db.activityLogs.unshift({
     id: `log-email-${Date.now()}`,
     action: "Email Notification Dispatched",
-    details: `Alert dispatched to ${targetEmail} for ${payload?.customer_name || 'Customer'} (${payload?.service_required || 'PC Repair'})`,
+    details: `Alert dispatched to ${targetEmail} for ${payload?.customer_name ? escapeHtml(payload.customer_name) : 'Customer'} (${payload?.service_required ? escapeHtml(payload.service_required) : 'PC Repair'})`,
     timestamp: new Date().toISOString(),
     user: "Notification Trigger"
   });
@@ -2493,6 +2798,7 @@ app.post('/api/notify-email', async (req, res) => {
     success: true,
     recipient: targetEmail,
     delivered: result.delivered,
+    status: result.status,
     message: `Immediate notification logged and dispatched to ${targetEmail}`
   });
 });
@@ -2514,6 +2820,29 @@ async function handleInquirySubmission(req: express.Request, res: express.Respon
   const cleanService = String(service || subject || 'Computer Diagnostics & Repair').trim();
   const cleanBudget = budget ? String(budget).trim() : '';
   const cleanMessage = String(message).trim();
+
+  // Input length validation (BUG-086, BUG-087, BUG-088)
+  if (cleanFullName.length > 100) return res.status(400).json({ error: "Full Name exceeds 100 characters." });
+  if (cleanPhone.length > 30) return res.status(400).json({ error: "Phone number exceeds 30 characters." });
+  if (cleanEmail.length > 120) return res.status(400).json({ error: "Email exceeds 120 characters." });
+  if (cleanMessage.length > 2000) return res.status(400).json({ error: "Message exceeds 2000 characters." });
+  if (cleanSubject.length > 150) return res.status(400).json({ error: "Subject exceeds 150 characters." });
+  if (cleanArea.length > 100) return res.status(400).json({ error: "Area exceeds 100 characters." });
+
+  // Duplicate inquiry prevention (BUG-093, BUG-094)
+  const normalizedPhone = cleanPhone.replace(/[^0-9]/g, '');
+  const existingRecent = (db.inquiries || []).find((inq: any) =>
+    (inq.phone || '').replace(/[^0-9]/g, '') === normalizedPhone &&
+    inq.message === cleanMessage &&
+    (Date.now() - new Date(inq.createdAt).getTime()) < 30000
+  );
+  if (existingRecent) {
+    return res.status(200).json({
+      success: true,
+      inquiry: existingRecent,
+      message: "Your inquiry has already been received. Our team will contact you shortly."
+    });
+  }
 
   const newInquiry: any = {
     id: `INQ-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
@@ -2582,8 +2911,10 @@ async function handleInquirySubmission(req: express.Request, res: express.Respon
   }
   db.inquiries.unshift(newInquiry);
 
-  // Sync customer profile
-  const existingCustomer = db.customers.find((c: any) => c.phone === newInquiry.phone);
+  // Sync customer profile with normalized phone comparison
+  const existingCustomer = (db.customers || []).find((c: any) =>
+    (c.phone || '').replace(/[^0-9]/g, '') === normalizedPhone
+  );
   if (!existingCustomer) {
     db.customers.unshift({
       id: `CUST-${Date.now()}`,
@@ -2625,11 +2956,11 @@ async function handleInquirySubmission(req: express.Request, res: express.Respon
 app.post('/api/inquiries', publicApiRateLimiter, handleInquirySubmission);
 app.post('/api/contact', publicApiRateLimiter, handleInquirySubmission);
 
-// GET endpoints to list inquiries
-app.get('/api/inquiries', (req, res) => {
+// GET endpoints to list inquiries (Admin only - FR-004)
+app.get('/api/inquiries', checkAdminAuth, (req, res) => {
   res.json({ inquiries: db.inquiries || [] });
 });
-app.get('/api/contact', (req, res) => {
+app.get('/api/contact', checkAdminAuth, (req, res) => {
   res.json({ inquiries: db.inquiries || [] });
 });
 
@@ -2700,11 +3031,11 @@ async function handleResendInquiryEmail(req: express.Request, res: express.Respo
   });
 }
 
-app.post('/api/inquiries/:id/resend-email', handleResendInquiryEmail);
-app.post('/api/contact/:id/resend-email', handleResendInquiryEmail);
+app.post('/api/inquiries/:id/resend-email', checkAdminAuth, handleResendInquiryEmail);
+app.post('/api/contact/:id/resend-email', checkAdminAuth, handleResendInquiryEmail);
 
-// PATCH endpoint to update inquiry status
-app.patch('/api/inquiries/:id', (req, res) => {
+// PATCH endpoint to update inquiry status (Admin only - FR-004)
+app.patch('/api/inquiries/:id', checkAdminAuth, (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
   const inquiry: any = (db.inquiries || []).find((inq: any) => inq.id === id);
@@ -2759,7 +3090,7 @@ const handleDeleteInquiry = (req: express.Request, res: express.Response) => {
   });
 };
 
-app.delete('/api/inquiries/:id', handleDeleteInquiry);
+app.delete('/api/inquiries/:id', checkAdminAuth, handleDeleteInquiry);
 app.delete('/api/admin/inquiries/:id', checkAdminAuth, handleDeleteInquiry);
 
 // Admin Test Email Dispatch
@@ -2813,7 +3144,7 @@ app.post('/api/admin/test-email', checkAdminAuth, async (req, res) => {
     subject: `TechFix Notification Test: Confirmed Active (${pktShortTime})`,
     html: testHtml,
     text: `TechFix Notification Test: Confirmed active delivery from ${effectiveFrom} to ${targetEmail} at ${pktDateTime} (PKT)`,
-    lead: { fullName: "System Test", phone: "0300 0000000", message: "Live email delivery test." }
+    lead: { fullName: "System Test", phone: "+92 327 5526107", message: "Live email delivery test." }
   });
 
   // Log in activity logs for admin visibility
@@ -2832,7 +3163,7 @@ app.post('/api/admin/test-email', checkAdminAuth, async (req, res) => {
   res.json({
     success: result.status === 'sent',
     recipient: targetEmail,
-    sender: result.provider === 'smtp' ? (gmailUser || 'ullahsafiullah117@gmail.com') : effectiveFrom,
+    sender: result.provider === 'smtp' ? (gmailUser || 'techfixpeshawar@gmail.com') : effectiveFrom,
     delivered: result.status === 'sent',
     status: result.status,
     provider: result.provider,
@@ -2874,84 +3205,110 @@ app.get('/api/admin/email-status', checkAdminAuth, (req, res) => {
   });
 });
 
-// Booking lookup by ID or Phone
-app.get('/api/bookings/:id', (req, res) => {
+// Booking lookup by ID or Phone (FR-005, BUG-019, BUG-153, BUG-154)
+app.get('/api/bookings/:id', publicApiRateLimiter, (req, res) => {
   const param = (req.params.id || '').toLowerCase().trim();
-  const cleanPhone = param.replace(/[^0-9]/g, '');
+  const digitsOnly = param.replace(/[^0-9]/g, '');
+
+  function normalizePhoneMatch(p: string): string {
+    const d = (p || '').replace(/[^0-9]/g, '');
+    if (d.startsWith('92') && d.length === 12) return '0' + d.substring(2);
+    if (d.startsWith('0') && d.length === 11) return d;
+    return d;
+  }
+
+  const normalizedParamPhone = digitsOnly.length >= 10 ? normalizePhoneMatch(digitsOnly) : '';
+
   const booking = db.bookings.find(b => {
-    if (b.id.toLowerCase() === param) return true;
-    if (cleanPhone.length >= 7) {
-      const bPhone = (b.phone || '').replace(/[^0-9]/g, '');
-      const bWa = (b.whatsapp || '').replace(/[^0-9]/g, '');
-      if (bPhone && (bPhone === cleanPhone || bPhone.endsWith(cleanPhone) || cleanPhone.endsWith(bPhone))) return true;
-      if (bWa && (bWa === cleanPhone || bWa.endsWith(cleanPhone) || cleanPhone.endsWith(bWa))) return true;
+    // 1. Exact Reference ID match
+    if (b.id && b.id.toLowerCase() === param) return true;
+    
+    // 2. Exact full phone number match (minimum 10 digits to prevent enumeration)
+    if (normalizedParamPhone) {
+      const bPhone = normalizePhoneMatch(b.phone || '');
+      const bWa = normalizePhoneMatch(b.whatsapp || '');
+      if (bPhone && bPhone === normalizedParamPhone) return true;
+      if (bWa && bWa === normalizedParamPhone) return true;
     }
     return false;
   });
+
   if (!booking) {
     return res.status(404).json({ error: "Booking request not found." });
   }
-  res.json({ booking });
+
+  // Dedicated sanitized response: return ONLY status & public appointment tracking fields (FR-005)
+  // Never expose private customer addresses, email, phone, or internal notes to public tracking
+  const sanitizedTracking = {
+    id: booking.id,
+    serviceRequired: booking.serviceRequired || '',
+    deviceType: booking.deviceType || '',
+    computerBrandModel: booking.computerBrandModel || '',
+    area: booking.area || 'Peshawar',
+    status: booking.status || 'PENDING',
+    scheduledTime: booking.scheduledTime || '',
+    preferredDate: booking.preferredDate || '',
+    preferredTime: booking.preferredTime || '',
+    createdAt: booking.createdAt || ''
+  };
+
+  res.json({ booking: sanitizedTracking });
 });
 
-// Admin Auth
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "peshawartech2026";
-let customAdminPassword: string | null = null;
+// Admin Auth Middleware & Token Verification (FR-001, FR-002)
+async function checkAdminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    const customHeader = req.headers['x-admin-token'] as string;
+    const validToken = (token || customHeader || '').trim();
 
-app.post('/api/admin/login', authRateLimiter, (req, res) => {
-  const { password } = req.body;
-  const p = (password || '').toString().trim();
-  if (
-    (customAdminPassword && (p === customAdminPassword || p.toLowerCase() === customAdminPassword.toLowerCase())) ||
-    p === ADMIN_SECRET || 
-    p.toLowerCase() === "safi2025" || 
-    p === "Safiullah@12" || 
-    p.toLowerCase() === "safiullah@12" ||
-    p.toLowerCase() === "admin123" || 
-    p.toLowerCase() === "admin" ||
-    p.toLowerCase() === "peshawartech2026"
-  ) {
-    return res.json({ success: true, token: "admin-auth-session-valid" });
-  } else {
-    return res.status(401).json({ error: "Invalid admin credentials." });
+    if (!validToken) {
+      return res.status(401).json({ error: "Unauthorized. Valid admin session token required." });
+    }
+
+    // 1. Backend CLI/Automated secret check (minimum 16 chars required)
+    const envSecret = process.env.ADMIN_SECRET;
+    if (envSecret && envSecret.length >= 16 && validToken === envSecret) {
+      (req as any).user = { email: 'admin@system', role: 'admin' };
+      return next();
+    }
+
+    // 2. Cryptographic Firebase ID Token verification
+    try {
+      const decoded = await getAdminAuth().verifyIdToken(validToken);
+      const email = (decoded.email || '').toLowerCase();
+      const isAdmin = decoded.admin === true || AUTHORIZED_ADMIN_EMAILS.map(e => e.toLowerCase()).includes(email);
+
+      if (!isAdmin) {
+        console.warn(`[AUTH] Non-admin access attempt denied: ${email} (${decoded.uid})`);
+        return res.status(403).json({ error: "Forbidden. Verified administrator privileges required." });
+      }
+
+      (req as any).user = decoded;
+      return next();
+    } catch (tokenErr: any) {
+      return res.status(401).json({ 
+        error: "Unauthorized. Invalid or expired administrator session token.",
+        code: tokenErr?.code || 'auth/invalid-token'
+      });
+    }
+  } catch (err: any) {
+    return res.status(500).json({ error: "Authentication verification error." });
   }
-});
-
-app.post('/api/admin/change-password', checkAdminAuth, (req, res) => {
-  const { newPassword } = req.body;
-  if (!newPassword || typeof newPassword !== 'string' || newPassword.trim().length < 4) {
-    return res.status(400).json({ error: "Password must be at least 4 characters long." });
-  }
-  customAdminPassword = newPassword.trim();
-  return res.json({ success: true, message: "Admin password updated successfully." });
-});
-
-function checkAdminAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  const customHeader = req.headers['x-admin-token'] as string;
-  const validToken = token || customHeader;
-
-  // Validate session token against authorized tokens
-  if (
-    validToken === 'admin-auth-session-valid' ||
-    validToken === ADMIN_SECRET ||
-    validToken === 'Safiullah@12' ||
-    validToken === 'admin123' ||
-    validToken === 'safi2025' ||
-    validToken === 'admin' ||
-    (validToken && validToken.length > 20)
-  ) {
-    return next();
-  }
-
-  // Allow development container requests without auth header for local preview when active
-  if (process.env.NODE_ENV !== 'production' && !authHeader) {
-    return next();
-  }
-
-  return res.status(401).json({ error: "Unauthorized. Valid admin session token required." });
 }
+
+// Token Verification Endpoint
+app.post('/api/admin/verify-token', checkAdminAuth, (req, res) => {
+  const user = (req as any).user;
+  return res.json({
+    success: true,
+    user: {
+      uid: user?.uid || 'admin',
+      email: user?.email || 'admin'
+    }
+  });
+});
 
 // Admin full data — reads Firestore settings first so Vercel always shows latest saved config
 app.get('/api/admin/data', checkAdminAuth, async (req, res) => {
@@ -3487,24 +3844,21 @@ app.post('/api/problem-leads', publicApiRateLimiter, async (req, res) => {
     const adminDest = getNotificationDestination();
     const subject = sanitizeEmailSubject(`[LEAD INQUIRY] Problem Research Request: ${newLead.problemTitle} (${newLead.fullName})`);
     const emailHtml = generateBrandedEmailHtml({
-      title: "New Problem Research & Diagnosis Request",
-      badge: "RESEARCH LEAD",
-      fullName: newLead.fullName,
+      clientName: newLead.fullName,
       phone: newLead.phone,
       whatsapp: newLead.whatsapp,
       email: newLead.email,
       area: newLead.area,
       service: `Problem: ${newLead.problemTitle}`,
-      message: `Device: ${newLead.deviceType}\nUrgency: ${newLead.urgency.toUpperCase()}\nRef: ${newLead.id}\n\nProblem Description:\n${newLead.problemDescription}`,
-      urgency: newLead.urgency
+      message: `Device: ${newLead.deviceType}\nUrgency: ${newLead.urgency.toUpperCase()}\nRef: ${newLead.id}\n\nProblem Description:\n${newLead.problemDescription}`
     });
 
     sendNotificationEmail({
       to: adminDest,
       subject,
       html: emailHtml,
-      leadType: "Problem Research Lead",
-      leadName: newLead.fullName
+      text: `New Problem Research Request from ${newLead.fullName} (${newLead.phone}): ${newLead.problemTitle}\nDevice: ${newLead.deviceType}\nUrgency: ${newLead.urgency}\n\n${newLead.problemDescription}`,
+      lead: newLead
     }).catch(e => console.warn('Problem lead email dispatch error:', e));
   } catch (err) {
     console.warn('Problem lead email notification handled:', err);
@@ -3572,7 +3926,13 @@ app.post('/api/admin/upload-icon', checkAdminAuth, (req, res) => {
     return res.status(400).json({ error: "Malformed base64 image data." });
   }
 
-  const ext = matches[1].replace('jpeg', 'jpg').replace('svg+xml', 'svg');
+  const buf = Buffer.from(matches[2].replace(/\s+/g, ''), 'base64');
+  const validation = validateImageBuffer(buf);
+  if (!validation.valid) {
+    return res.status(400).json({ error: "Invalid image file format or size. Allowed formats: PNG, JPG, WebP, SVG (max 5MB)." });
+  }
+  const ext = validation.ext;
+
   const safeBase = (filename || 'service-icon')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -3580,7 +3940,6 @@ app.post('/api/admin/upload-icon', checkAdminAuth, (req, res) => {
   const outFilename = `icon-${safeBase}-${Date.now().toString(36)}.${ext}`;
   const outPath = path.join(UPLOADS_DIR, outFilename);
 
-  const buf = Buffer.from(matches[2].replace(/\s+/g, ''), 'base64');
   fs.writeFileSync(outPath, buf);
 
   const finalUrl = `/uploads/${outFilename}`;
@@ -3767,6 +4126,7 @@ app.post('/api/admin/bookings/:id/confirm', checkAdminAuth, async (req, res) => 
       booking,
       scheduledTime
     });
+    const techPhone = getTechnicianPhone();
     const text = `
 APPOINTMENT CONFIRMED - TECHFIX PESHAWAR
 Booking Reference ID: ${booking.id}
@@ -3781,7 +4141,7 @@ Urgency: ${(booking.urgency || 'NORMAL').toUpperCase()}
 Important Data: ${booking.containsImportantData || 'NO'}
 
 Your scheduled appointment is confirmed! Our technician will arrive at the scheduled time: ${scheduledTime}.
-If you need to reschedule or have urgent queries, please call 0344 0940443 or message on WhatsApp.
+If you need to reschedule or have urgent queries, please call ${techPhone} or message on WhatsApp.
     `.trim();
 
     try {
@@ -3804,7 +4164,9 @@ If you need to reschedule or have urgent queries, please call 0344 0940443 or me
     booking,
     emailDelivery,
     message: req.body.sendEmail && targetEmail 
-      ? `Appointment confirmed and email dispatched to ${targetEmail}.`
+      ? (emailDelivery.status === 'sent' 
+          ? `Appointment confirmed and email delivered to ${targetEmail}.` 
+          : `Appointment confirmed, but email delivery status: ${emailDelivery.status}. (${emailDelivery.error || 'Check email configuration'})`)
       : `Appointment confirmed! (Schedule: ${scheduledTime}). Ready for WhatsApp confirmation or manual email dispatch.`
   });
 });
@@ -3825,9 +4187,24 @@ app.post('/api/admin/bookings/:id/send-confirmation-email', checkAdminAuth, asyn
     return res.status(404).json({ error: "Booking not found" });
   }
 
-  const targetEmail = (booking as any).email;
-  if (!targetEmail || !targetEmail.includes('@')) {
-    return res.status(400).json({ error: "No valid customer email address on file for this booking." });
+  // Allow admin to override/correct customer email if provided
+  let targetEmail = (req.body?.customerEmail && String(req.body.customerEmail).trim()) || (booking as any).email;
+  if (!targetEmail || !targetEmail.includes('@') || !targetEmail.includes('.')) {
+    return res.status(400).json({ error: "No valid customer email address on file for this booking. Please specify a valid email." });
+  }
+
+  // Detect common domain typos (e.g. @gmil.com instead of @gmail.com)
+  const lowerEmail = targetEmail.toLowerCase();
+  if (lowerEmail.endsWith('@gmil.com') || lowerEmail.endsWith('@gmai.com') || lowerEmail.endsWith('@gmial.com')) {
+    return res.status(400).json({ 
+      error: `Invalid email domain detected in "${targetEmail}". Did you mean "@gmail.com"? Please correct the email before dispatching.` 
+    });
+  }
+
+  // If customerEmail was corrected by admin, persist it to the booking record
+  if (req.body?.customerEmail && req.body.customerEmail.trim() !== (booking as any).email) {
+    (booking as any).email = targetEmail;
+    saveDb();
   }
 
   const scheduledTime = req.body.scheduledTime || booking.scheduledTime || `${booking.preferredDate || 'Tomorrow'} (${booking.preferredTime || 'Morning'})`;
@@ -3835,6 +4212,7 @@ app.post('/api/admin/bookings/:id/send-confirmation-email', checkAdminAuth, asyn
     booking,
     scheduledTime
   });
+  const techPhone = getTechnicianPhone();
   const text = `
 APPOINTMENT CONFIRMED - TECHFIX PESHAWAR
 Booking Reference ID: ${booking.id}
@@ -3847,7 +4225,7 @@ Device & Model: ${booking.deviceType} ${booking.computerBrandModel || ''}
 Confirmed Arrival Slot: ${scheduledTime}
 
 Your scheduled appointment is confirmed! Our technician will arrive at the scheduled time: ${scheduledTime}.
-If you need assistance, please call 0344 0940443.
+If you need assistance, please call ${techPhone}.
   `.trim();
 
   try {
@@ -3858,13 +4236,25 @@ If you need assistance, please call 0344 0940443.
       text,
       lead: booking
     });
+
+    const isDelivered = emailDelivery.status === 'sent';
+    if (!isDelivered) {
+      return res.status(422).json({
+        success: false,
+        delivered: false,
+        status: emailDelivery.status,
+        provider: emailDelivery.provider,
+        error: emailDelivery.error || `Email delivery failed (${emailDelivery.status}). Check email settings or SMTP password.`
+      });
+    }
+
     return res.json({
       success: true,
-      delivered: emailDelivery.status === 'sent',
+      delivered: true,
       status: emailDelivery.status,
       provider: emailDelivery.provider,
       messageId: emailDelivery.messageId,
-      message: `Confirmation email delivered to ${targetEmail} via ${emailDelivery.provider.toUpperCase()}!`
+      message: `Confirmation email successfully delivered to ${targetEmail} via ${emailDelivery.provider.toUpperCase()}!`
     });
   } catch (err: any) {
     return res.status(500).json({
@@ -3939,8 +4329,8 @@ Please check your WhatsApp or incoming calls (${booking.phone}).
 Technician Note:
 ${technicianNote}
 
-Direct WhatsApp: https://wa.me/923440940443
-Phone: 0344 0940443
+Direct WhatsApp: https://wa.me/${getTechnicianWhatsApp()}
+Phone: ${getTechnicianPhone()}
     `.trim();
 
     try {
@@ -3980,8 +4370,9 @@ app.post('/api/admin/inquiries/:id/confirm', checkAdminAuth, async (req, res) =>
   inquiry.status = "CONVERTED";
 
   // Find or create linked booking
-  let booking = db.bookings.find(b => b.id === (inquiry as any).bookingId || (inquiry.phone && b.phone === inquiry.phone));
-  if (!booking) {
+  let booking: DatabaseBooking;
+  const existingBooking = db.bookings.find(b => b.id === (inquiry as any).bookingId || (Boolean(inquiry.phone) && b.phone === inquiry.phone));
+  if (!existingBooking) {
     booking = {
       id: (inquiry as any).bookingId || `PSH-${Date.now().toString(36).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`,
       createdAt: new Date().toISOString(),
@@ -4001,10 +4392,11 @@ app.post('/api/admin/inquiries/:id/confirm', checkAdminAuth, async (req, res) =>
       status: "CONFIRMED",
       adminNotes: req.body.adminNotes || "",
       scheduledTime
-    } as any;
+    };
     db.bookings.unshift(booking);
     (inquiry as any).bookingId = booking.id;
   } else {
+    booking = existingBooking;
     booking.status = "CONFIRMED";
     booking.scheduledTime = scheduledTime;
     if (req.body.adminNotes) booking.adminNotes = req.body.adminNotes;
@@ -4014,12 +4406,13 @@ app.post('/api/admin/inquiries/:id/confirm', checkAdminAuth, async (req, res) =>
 
   // Customer email is only sent if explicitly requested by admin (manual dispatch mode)
   let emailDelivery: any = { status: "not_attempted" };
-  const targetEmail = inquiry.email || (booking as any).email;
+  const targetEmail = (req.body?.customerEmail && req.body.customerEmail.trim()) || inquiry.email || (booking as any).email;
   if (req.body.sendEmail === true && targetEmail && targetEmail.includes('@')) {
     const html = generateAppointmentConfirmedEmailHtml({
       booking,
       scheduledTime
     });
+    const techPhone = getTechnicianPhone();
     const text = `
 APPOINTMENT CONFIRMED - TECHFIX PESHAWAR
 Booking Reference ID: ${booking.id}
@@ -4032,7 +4425,7 @@ Device & Model: ${booking.deviceType} ${booking.computerBrandModel || ''}
 Confirmed Arrival Slot: ${scheduledTime}
 
 Your scheduled appointment is confirmed! Our technician will arrive at the scheduled time: ${scheduledTime}.
-If you have any questions or need to reschedule, please call 0344 0940443 or message on WhatsApp.
+If you have any questions or need to reschedule, please call ${techPhone} or message on WhatsApp.
     `.trim();
 
     try {
@@ -4056,7 +4449,9 @@ If you have any questions or need to reschedule, please call 0344 0940443 or mes
     booking,
     emailDelivery,
     message: req.body.sendEmail && targetEmail
-      ? `Appointment confirmed! Confirmation email dispatched to ${targetEmail}.`
+      ? (emailDelivery.status === 'sent'
+          ? `Appointment confirmed! Confirmation email delivered to ${targetEmail}.`
+          : `Appointment confirmed, but email status: ${emailDelivery.status}. (${emailDelivery.error || 'Check email configuration'})`)
       : `Lead converted to confirmed appointment! (Schedule: ${scheduledTime}). Ready for WhatsApp confirmation or manual email dispatch.`
   });
 });
@@ -4083,9 +4478,22 @@ app.post('/api/admin/inquiries/:id/send-confirmation-email', checkAdminAuth, asy
     status: "CONFIRMED"
   };
 
-  const targetEmail = inquiry.email || (booking as any).email;
-  if (!targetEmail || !targetEmail.includes('@')) {
-    return res.status(400).json({ error: "No valid customer email address on file for this inquiry." });
+  let targetEmail = (req.body?.customerEmail && String(req.body.customerEmail).trim()) || inquiry.email || (booking as any).email;
+  if (!targetEmail || !targetEmail.includes('@') || !targetEmail.includes('.')) {
+    return res.status(400).json({ error: "No valid customer email address on file for this inquiry. Please provide a valid email." });
+  }
+
+  const lowerEmail = targetEmail.toLowerCase();
+  if (lowerEmail.endsWith('@gmil.com') || lowerEmail.endsWith('@gmai.com') || lowerEmail.endsWith('@gmial.com')) {
+    return res.status(400).json({
+      error: `Invalid email domain detected in "${targetEmail}". Did you mean "@gmail.com"? Please correct before sending.`
+    });
+  }
+
+  if (req.body?.customerEmail && req.body.customerEmail.trim() !== inquiry.email) {
+    inquiry.email = targetEmail;
+    if (booking) (booking as any).email = targetEmail;
+    saveDb();
   }
 
   const scheduledTime = req.body.scheduledTime || (booking as any).scheduledTime || `${(inquiry as any).preferredDate || 'Tomorrow'} (${(inquiry as any).preferredTime || 'Morning'})`;
@@ -4093,6 +4501,7 @@ app.post('/api/admin/inquiries/:id/send-confirmation-email', checkAdminAuth, asy
     booking,
     scheduledTime
   });
+  const techPhone = getTechnicianPhone();
   const text = `
 APPOINTMENT CONFIRMED - TECHFIX PESHAWAR
 Booking Reference ID: ${booking.id}
@@ -4105,7 +4514,7 @@ Device & Model: ${booking.deviceType} ${booking.computerBrandModel || ''}
 Confirmed Arrival Slot: ${scheduledTime}
 
 Your scheduled appointment is confirmed! Our technician will arrive at the scheduled time: ${scheduledTime}.
-If you need assistance, please call 0344 0940443.
+If you need assistance, please call ${techPhone}.
   `.trim();
 
   try {
@@ -4116,13 +4525,25 @@ If you need assistance, please call 0344 0940443.
       text,
       lead: booking
     });
+
+    const isDelivered = emailDelivery.status === 'sent';
+    if (!isDelivered) {
+      return res.status(422).json({
+        success: false,
+        delivered: false,
+        status: emailDelivery.status,
+        provider: emailDelivery.provider,
+        error: emailDelivery.error || `Email delivery failed (${emailDelivery.status}). Check email settings or SMTP password.`
+      });
+    }
+
     return res.json({
       success: true,
-      delivered: emailDelivery.status === 'sent',
+      delivered: true,
       status: emailDelivery.status,
       provider: emailDelivery.provider,
       messageId: emailDelivery.messageId,
-      message: `Confirmation email delivered to ${targetEmail} via ${emailDelivery.provider.toUpperCase()}!`
+      message: `Confirmation email successfully delivered to ${targetEmail} via ${emailDelivery.provider.toUpperCase()}!`
     });
   } catch (err: any) {
     return res.status(500).json({
@@ -4384,7 +4805,7 @@ app.post('/api/admin/case-studies', checkAdminAuth, (req, res) => {
     user: "Safiullah (Admin)"
   });
   saveDb();
-  res.json({ success: true, caseStudy: newCase });
+  res.status(201).json({ success: true, caseStudy: newCase });
 });
 
 app.put('/api/admin/case-studies/:id', checkAdminAuth, (req, res) => {
@@ -4417,15 +4838,16 @@ app.post('/api/admin/media/upload', uploadRateLimiter, checkAdminAuth, (req, res
     if (dataUrl.startsWith('data:image/')) {
       const matches = dataUrl.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,([\s\S]+)$/);
       if (matches && matches[2]) {
-        let ext = matches[1].toLowerCase().replace('jpeg', 'jpg');
-        if (ext.includes('png')) ext = 'png';
-        else if (ext.includes('webp')) ext = 'webp';
-        else ext = 'jpg';
-
+        const cleanBase64 = matches[2].replace(/\s+/g, '');
+        const buf = Buffer.from(cleanBase64, 'base64');
+        const validation = validateImageBuffer(buf);
+        if (!validation.valid) {
+          return res.status(400).json({ error: "Invalid image format or file exceeds 5MB limit. Allowed: PNG, JPG, WebP, SVG." });
+        }
+        const ext = validation.ext;
         const safeName = `img-${Date.now()}.${ext}`;
         const filePath = path.join(UPLOADS_DIR, safeName);
-        const cleanBase64 = matches[2].replace(/\s+/g, '');
-        fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+        fs.writeFileSync(filePath, buf);
         finalUrl = `/uploads/${safeName}`;
       }
     }
@@ -4476,15 +4898,16 @@ app.post('/api/admin/profile-photo', uploadRateLimiter, checkAdminAuth, (req, re
     if (dataUrl.startsWith('data:image/')) {
       const matches = dataUrl.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,([\s\S]+)$/);
       if (matches && matches[2]) {
-        let ext = matches[1].toLowerCase().replace('jpeg', 'jpg');
-        if (ext.includes('png')) ext = 'png';
-        else if (ext.includes('webp')) ext = 'webp';
-        else ext = 'jpg';
-
+        const cleanBase64 = matches[2].replace(/\s+/g, '');
+        const buf = Buffer.from(cleanBase64, 'base64');
+        const validation = validateImageBuffer(buf);
+        if (!validation.valid) {
+          return res.status(400).json({ error: "Invalid image format or file exceeds 5MB limit. Allowed: PNG, JPG, WebP, SVG." });
+        }
+        const ext = validation.ext;
         const safeName = `technician-portrait-${Date.now()}.${ext}`;
         const filePath = path.join(UPLOADS_DIR, safeName);
-        const cleanBase64 = matches[2].replace(/\s+/g, '');
-        fs.writeFileSync(filePath, Buffer.from(cleanBase64, 'base64'));
+        fs.writeFileSync(filePath, buf);
         finalUrl = `/uploads/${safeName}`;
       }
     }
@@ -4542,7 +4965,19 @@ app.get('/api/media/image/:id', (req, res) => {
 
 app.delete('/api/admin/media/:id', checkAdminAuth, (req, res) => {
   const { id } = req.params;
-  db.media = db.media.filter(m => m.id !== id);
+  const item = (db.media || []).find((m: any) => m.id === id);
+  if (item && item.url && item.url.startsWith('/uploads/')) {
+    const filename = path.basename(item.url);
+    const resolvedPath = path.resolve(UPLOADS_DIR, filename);
+    if (resolvedPath.startsWith(path.resolve(UPLOADS_DIR)) && fs.existsSync(resolvedPath)) {
+      try {
+        fs.unlinkSync(resolvedPath);
+      } catch (err) {
+        console.warn(`[MEDIA] Could not delete physical file ${resolvedPath}:`, err);
+      }
+    }
+  }
+  db.media = (db.media || []).filter((m: any) => m.id !== id);
   saveDb();
   res.json({ success: true });
 });
@@ -4677,6 +5112,20 @@ app.post('/api/admin/reset-defaults', checkAdminAuth, (req, res) => {
   db = JSON.parse(JSON.stringify(defaultData));
   saveDb();
   res.json({ success: true, message: "Database reset to official defaults" });
+});
+
+// Centralized Express error handler with correlation ID (BUG-202, BUG-203, BUG-204)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const correlationId = `err-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 7)}`;
+  console.error(`[UNHANDLED SERVER ERROR] [${correlationId}] ${req.method} ${req.url}:`, err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  const statusCode = typeof err.status === 'number' ? err.status : 500;
+  res.status(statusCode).json({
+    error: statusCode === 500 ? "An unexpected server error occurred. Please try again later." : (err.message || "Request failed"),
+    correlationId
+  });
 });
 
 async function startServer() {

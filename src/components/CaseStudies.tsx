@@ -116,7 +116,7 @@ export function CaseStudies({ caseStudies, onBookSimilar }: CaseStudiesProps) {
 
               <div className="mt-6 pt-4 border-t border-slate-800">
                 <button
-                  onClick={() => onBookSimilar(cs.category)}
+                  onClick={() => onBookSimilar(cs.category || '')}
                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl skeuo-btn py-2.5 px-3 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer font-mono"
                 >
                   <span>Have A Similar Issue? Book Now</span>

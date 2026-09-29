@@ -258,7 +258,7 @@ export function AboutPage({ settings, pageSections, onNavigate }: AboutPageProps
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {ethicalCodes.map((code, idx) => {
+            {ethicalCodes.map((code: any, idx: number) => {
               const Icon = code.icon || ShieldCheck;
               return (
                 <div

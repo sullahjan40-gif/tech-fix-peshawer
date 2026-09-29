@@ -46,18 +46,18 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
 
   // Resend API & Email settings state
   const [resendApiKey, setResendApiKey] = useState(
-    settings?.resendApiKey || 're_Buuf9PGF_AbXoKs68mLpsbNEJQx8tQW7a'
+    settings?.resendApiKey || ''
   );
   const [fromEmail, setFromEmail] = useState(
     settings?.resendFromEmail || 'Peshawar Tech Support <onboarding@resend.dev>'
   );
   const [testEmailAddress, setTestEmailAddress] = useState(
-    settings?.resendTargetEmail || settings?.email || 'ullahsafiullah117@gmail.com'
+    settings?.resendTargetEmail || settings?.email || 'techfixpeshawar@gmail.com'
   );
 
   // Google Gmail SMTP Credentials (Free 500 emails/day, 100% Primary Inbox)
   const [gmailUser, setGmailUser] = useState(
-    settings?.gmailUser || 'ullahsafiullah117@gmail.com'
+    settings?.gmailUser || 'techfixpeshawar@gmail.com'
   );
   const [gmailAppPassword, setGmailAppPassword] = useState(
     settings?.gmailAppPassword || ''
@@ -159,8 +159,8 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPassword || newPassword.length < 4) {
-      setPasswordMsg({ type: 'error', text: 'Password must be at least 4 characters long.' });
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordMsg({ type: 'error', text: 'Password must be at least 6 characters long.' });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -431,7 +431,7 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
           <div className="space-y-0.5">
             <span className="text-[10px] font-mono text-[#a89a8c] uppercase tracking-wider block">Alerts Sent To ("To"):</span>
             <span className="text-emerald-400 font-mono text-[11px] font-semibold truncate block" title={testEmailAddress}>
-              {testEmailAddress || 'ullahsafiullah117@gmail.com'}
+              {testEmailAddress || 'techfixpeshawar@gmail.com'}
             </span>
           </div>
           <div className="space-y-0.5">
@@ -580,7 +580,7 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
                     type="email"
                     value={gmailUser}
                     onChange={(e) => setGmailUser(e.target.value)}
-                    placeholder="ullahsafiullah117@gmail.com"
+                    placeholder="techfixpeshawar@gmail.com"
                     className="w-full rounded-xl bg-[#1c120c] border border-[#3d271d] px-3.5 py-2 text-xs text-[#fdfaf4] font-mono focus:border-emerald-500 focus:outline-none transition-all shadow-inner"
                   />
                   <span className="text-[10px] text-[#a89a8c] mt-1 block">
@@ -674,7 +674,7 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
                 required
                 value={testEmailAddress}
                 onChange={(e) => setTestEmailAddress(e.target.value)}
-                placeholder="ullahsafiullah117@gmail.com"
+                placeholder="techfixpeshawar@gmail.com"
                 className="w-full rounded-xl bg-[#0e0805] border border-[#3d271d] px-3.5 py-2.5 text-xs text-[#fdfaf4] font-mono focus:border-amber-500 focus:outline-none transition-all shadow-inner"
               />
               <span className="text-[10px] text-[#a89a8c] mt-1 block">
@@ -836,7 +836,7 @@ export function AdminSettings({ onRefresh, settings }: AdminSettingsProps) {
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          <span className="text-[11px] text-[#a89a8c]">Default password: safi2025</span>
+          <span className="text-[11px] text-[#a89a8c]">Min. 6 characters. Protected by Firebase Auth.</span>
           <button
             type="submit"
             className="skeuo-btn-primary flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold text-white transition-all shadow-lg cursor-pointer"

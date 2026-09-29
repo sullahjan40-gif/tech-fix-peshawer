@@ -58,8 +58,8 @@ export function PageUnpublishedNotice({ pageTitle, pageKey, onNavigate }: PageUn
 
           <div className="mt-8 pt-6 border-t border-slate-800/80 text-xs text-slate-400">
             Need urgent assistance? Call or WhatsApp technician Safiullah directly at{' '}
-            <a href="tel:03440940443" className="text-emerald-400 font-mono font-semibold hover:underline">
-              0344 0940443
+            <a href="tel:03275526107" className="text-emerald-400 font-mono font-semibold hover:underline">
+              0327 5526107
             </a>
           </div>
         </div>

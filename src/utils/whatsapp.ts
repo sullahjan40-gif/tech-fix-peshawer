@@ -121,8 +121,21 @@ export function generateConfirmationWhatsAppMessage(
     adminNotes?: string;
   },
   confirmedSlotInput?: string,
-  customNotes?: string
+  customNotes?: string,
+  technicianPhoneInput?: string
 ): string {
+  let resolvedTechPhone = technicianPhoneInput;
+  if (!resolvedTechPhone && typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('techfix_settings_cache');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.phoneNumber) resolvedTechPhone = parsed.phoneNumber;
+      }
+    } catch {}
+  }
+  if (!resolvedTechPhone) resolvedTechPhone = '0327 5526107';
+
   const customerName = booking.fullName || 'Customer';
   const refId = booking.id || 'PSH-CONFIRMED';
   const confirmedSlot = confirmedSlotInput || booking.scheduledTime || (
@@ -172,7 +185,7 @@ Your scheduled appointment is confirmed! Our technician will arrive at:
 *DIAGNOSED PROBLEM / JOB NOTES:*
 ${jobNotes}
 ----------------------------------------
-📞 Call / WhatsApp: 0344 0940443
+📞 Call / WhatsApp: ${resolvedTechPhone}
 TechFix Peshawar • Doorstep Computer Repair & Troubleshooting`;
 }
 

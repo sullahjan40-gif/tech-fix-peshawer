@@ -717,7 +717,7 @@ export function AdminPanel({
                 settings={adminSettings}
                 onSaved={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -730,7 +730,7 @@ export function AdminPanel({
                 defaultSubTab={activeSubTab}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -744,7 +744,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -758,7 +758,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -772,7 +772,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -786,7 +786,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -800,7 +800,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -814,7 +814,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -828,7 +828,7 @@ export function AdminPanel({
                 settings={adminSettings}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -840,7 +840,7 @@ export function AdminPanel({
                 faqs={adminFaqs}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -854,7 +854,7 @@ export function AdminPanel({
                 pageSections={adminPageSections}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToPage={(p) => {
                   window.location.hash = p;
@@ -870,7 +870,7 @@ export function AdminPanel({
                 problemSolutions={adminProblemSolutions}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
                 onNavigateToTab={handleTabChange}
               />
@@ -894,7 +894,7 @@ export function AdminPanel({
                 serviceAreas={adminAreas}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -908,7 +908,7 @@ export function AdminPanel({
                 serviceAreas={adminAreas}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -918,7 +918,7 @@ export function AdminPanel({
                 inquiries={adminInquiries}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -931,7 +931,7 @@ export function AdminPanel({
                 onOpenMediaTab={() => handleTabChange('media')}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -942,7 +942,7 @@ export function AdminPanel({
                 technicianPhoto={adminSettings.technicianPhoto}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}
@@ -953,7 +953,7 @@ export function AdminPanel({
                 serviceAreas={adminAreas}
                 onRefresh={() => {
                   loadFullAdminData();
-                  onRefreshData();
+                  onRefreshData?.();
                 }}
               />
             )}

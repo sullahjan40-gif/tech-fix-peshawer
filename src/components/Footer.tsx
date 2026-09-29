@@ -331,11 +331,11 @@ export function Footer({ settings, onNavigate, onOpenBooking }: FooterProps) {
                   <Mail className="h-3.5 w-3.5 text-cyan-400" />
                 </div>
                 <a 
-                  href={`mailto:${settings.email || 'ullahsafiullah117@gmail.com'}`} 
+                  href={`mailto:${settings.email || 'techfixpeshawar@gmail.com'}`} 
                   className="truncate hover:text-cyan-300 transition-colors font-mono"
                   title="Send email query to Safiullah"
                 >
-                  {settings.email || 'ullahsafiullah117@gmail.com'}
+                  {settings.email || 'techfixpeshawar@gmail.com'}
                 </a>
               </li>
               <li className="flex items-center gap-2">
@@ -358,17 +358,12 @@ export function Footer({ settings, onNavigate, onOpenBooking }: FooterProps) {
 
         </div>
 
-        {/* Legal Disclaimer & Bottom Line with Hidden Admin Access */}
+        {/* Legal Disclaimer & Bottom Line */}
         <div className="pt-6 border-t border-amber-950/40 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px] text-stone-400">
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={() => handleNav('admin')}
-              className="text-stone-400 hover:text-amber-400/90 transition-colors cursor-pointer text-left focus:outline-none"
-              title="TechFix System Access"
-            >
+            <span className="text-stone-400">
               © {new Date().getFullYear()} TechFix On-Site Computer Services. All rights reserved.
-            </button>
+            </span>
           </div>
 
           <div className="text-center md:text-right font-mono text-[11px] text-amber-500/80">

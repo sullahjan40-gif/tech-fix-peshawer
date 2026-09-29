@@ -2,69 +2,130 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ===============================================================
+    // Assumed Data Model & Architecture (TechFix Peshawar)
+    // ===============================================================
+    // - Services: Public published services list; admin CMS management
+    // - FAQ: Public published FAQs; admin management
+    // - Case Studies: Public portfolio items; admin management
+    // - Settings: Public site config (site_config, website_content); admin-only private configs (admin)
+    // - Bookings / ServiceRequests: Public submission & single ID status lookup; admin list/manage
+    // - Inquiries / Contacts: Public submission; admin-only read/manage
+    // - Customers: Admin-only private customer profiles
+    // - Activity Logs: Admin-only audit trail (no public forgery)
+    // - Users: Owner read/write profile with role immutability; admin full access
+    // ===============================================================
+
     function isAuth() {
       return request.auth != null;
     }
 
-    // Verify administrator authority via custom auth claim, verified admin email, or user profile role
+    // Cryptographic token admin claim or authoritative admin email check (FR-001, FR-002, BUG-013, BUG-014)
+    // Never depends on mutable user documents in Firestore.
     function isAdmin() {
       return isAuth() && (
         request.auth.token.admin == true ||
-        request.auth.token.email == 'ullahsafiullah117@gmail.com' ||
-        request.auth.token.email == 'sullahjan40@gmail.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+        request.auth.token.email in [
+          'techfixpeshawar@gmail.com',
+          'sullahjan40@gmail.com',
+          'ullahsafiullah117@gmail.com',
+          'admin@peshawar-techsupport.pk'
+        ]
       );
     }
 
-    // Services: Public visitors can only view published services; only admin can edit/publish/delete
+    function isOwner(userId) {
+      return isAuth() && request.auth.uid == userId;
+    }
+
+    // Safely check if a resource exists and is published/active (BUG-079)
+    // Prevents rule crashes on non-existent documents or missing 'status' field
+    function isPublishedResource() {
+      return resource != null && 'status' in resource.data && resource.data.status in ['PUBLISHED', 'published', 'active'];
+    }
+
+    // ---------------------------------------------------------------
+    // 1. Services Catalog (CMS) (BUG-079)
+    // ---------------------------------------------------------------
     match /services/{serviceId} {
-      allow read: if resource.data.status == 'PUBLISHED' || resource.data.status == 'published' || resource.data.status == 'active' || isAdmin();
+      allow read: if isPublishedResource() || isAdmin();
       allow write: if isAdmin();
     }
 
-    // FAQ: Public visitors can only view published FAQs; only admin can manage
+    // ---------------------------------------------------------------
+    // 2. FAQ Items (CMS) (BUG-079)
+    // ---------------------------------------------------------------
     match /faq/{faqId} {
-      allow read: if resource.data.status == 'PUBLISHED' || resource.data.status == 'published' || resource.data.status == 'active' || isAdmin();
+      allow read: if isPublishedResource() || isAdmin();
       allow write: if isAdmin();
     }
 
-    // Real Service Cases: Public can only view published cases; only admin can manage
+    // ---------------------------------------------------------------
+    // 3. Real Service Cases / Case Studies (CMS) (BUG-079)
+    // ---------------------------------------------------------------
     match /caseStudies/{caseStudyId} {
-      allow read: if resource.data.status == 'PUBLISHED' || resource.data.status == 'published' || resource.data.status == 'active' || isAdmin();
+      allow read: if isPublishedResource() || isAdmin();
       allow write: if isAdmin();
     }
 
-    // Settings (e.g. site_config): Public can read contact info & settings; only admin can edit
-    match /settings/{settingId} {
+    // ---------------------------------------------------------------
+    // 4. Page Sections & Content (CMS)
+    // ---------------------------------------------------------------
+    match /page_sections/{sectionId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Service Requests: Public can create requests & look up their own specific reference ID (get); only admin can list or update
+    match /problemSolutions/{solutionId} {
+      allow read: if isPublishedResource() || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /problemLeads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------
+    // 5. Site Settings (e.g. site_config, website_content) (BUG-017, BUG-035, BUG-080)
+    // Public can only read public CMS configs ('site_config', 'website_content'); private configs (e.g. 'admin') require admin.
+    // Writes strictly require admin and forbid storing sensitive server-side credentials/secrets.
+    // ---------------------------------------------------------------
+    match /settings/{settingId} {
+      allow read: if settingId in ['site_config', 'website_content'] || isAdmin();
+      allow write: if isAdmin() && 
+        !('adminPassword' in request.resource.data) &&
+        !('resendApiKey' in request.resource.data) &&
+        !('gmailAppPassword' in request.resource.data) &&
+        !('smtpPassword' in request.resource.data);
+    }
+
+    // ---------------------------------------------------------------
+    // 6. Bookings & Service Requests (FR-004, FR-005, BUG-019)
+    // Public can submit & look up a single known Reference ID; only admin can list or update
+    // ---------------------------------------------------------------
     match /serviceRequests/{requestId} {
       allow create: if true;
       allow get: if true;
-      allow list: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow list, update, delete: if isAdmin();
     }
 
     match /requests/{requestId} {
       allow create: if true;
       allow get: if true;
-      allow list: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow list, update, delete: if isAdmin();
     }
 
-    // Bookings: Public can create; only admin can list or update status
     match /bookings/{bookingId} {
       allow create: if true;
       allow get: if true;
-      allow list: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow list, update, delete: if isAdmin();
     }
 
-    // Inquiries: Public can submit; only admin can read and manage
+    // ---------------------------------------------------------------
+    // 7. Customer Inquiries & Leads (FR-004, BUG-016, BUG-018, BUG-025)
+    // Public can submit; only authenticated admin can list, read, or delete
+    // ---------------------------------------------------------------
     match /inquiries/{inquiryId} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
@@ -75,27 +136,43 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
-    // Customers: Strictly private customer profiles; only admin can access
+    // ---------------------------------------------------------------
+    // 8. Customers CRM Directory (BUG-016, BUG-021)
+    // Strictly private customer profiles
+    // ---------------------------------------------------------------
     match /customers/{customerId} {
       allow read, write: if isAdmin();
     }
 
-    // Media: Public can view assets; only admin can upload or delete
+    // ---------------------------------------------------------------
+    // 9. Media Assets
+    // ---------------------------------------------------------------
     match /media/{mediaId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // Activity Logs: Admin-only audit trail
+    // ---------------------------------------------------------------
+    // 10. Audit Activity Logs (BUG-081, BUG-083)
+    // Admin-only audit trail; public cannot forge activity logs
+    // ---------------------------------------------------------------
     match /activityLogs/{logId} {
-      allow read: if isAdmin();
-      allow create: if true;
+      allow read, write: if isAdmin();
     }
 
-    // User accounts management
+    // ---------------------------------------------------------------
+    // 11. User Profiles & Role Protection (BUG-013, BUG-014)
+    // Users can create/update their profile but CANNOT self-escalate role to admin
+    // ---------------------------------------------------------------
     match /users/{userId} {
-      allow read: if isAuth() && (request.auth.uid == userId || isAdmin());
-      allow write: if isAuth() && (request.auth.uid == userId || isAdmin());
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAdmin() || (
+        isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role != 'admin')
+      );
+      allow update: if isAdmin() || (
+        isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role == resource.data.role)
+      );
+      allow delete: if isAdmin();
     }
   }
 }

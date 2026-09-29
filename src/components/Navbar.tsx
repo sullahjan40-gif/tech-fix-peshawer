@@ -138,7 +138,17 @@ export function Navbar({
           </button>
 
           <button
-            onClick={() => onNavigate('contact')}
+            onClick={() => {
+              onNavigate('contact');
+              setTimeout(() => {
+                const el = document.getElementById('booking-form-fields') || document.getElementById('booking-form-anchor') || document.getElementById('book-service');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  const firstInput = el.querySelector('input');
+                  if (firstInput) firstInput.focus();
+                }
+              }, 120);
+            }}
             className="skeuo-btn-primary inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white transition-all cursor-pointer shadow-lg shadow-amber-900/40"
           >
             <Calendar className="h-4 w-4" />
@@ -149,7 +159,17 @@ export function Navbar({
         {/* Mobile menu trigger */}
         <div className="flex items-center gap-2 lg:hidden">
           <button
-            onClick={() => onNavigate('contact')}
+            onClick={() => {
+              onNavigate('contact');
+              setTimeout(() => {
+                const el = document.getElementById('booking-form-fields') || document.getElementById('booking-form-anchor') || document.getElementById('book-service');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  const firstInput = el.querySelector('input');
+                  if (firstInput) firstInput.focus();
+                }
+              }, 120);
+            }}
             className="skeuo-btn-primary inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold text-white shadow-sm cursor-pointer"
           >
             Book

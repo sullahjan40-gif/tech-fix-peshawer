@@ -423,9 +423,16 @@ export interface PageSectionsData {
   'why-on-site': WhyOnSiteSectionData;
   'who-we-serve': WhoWeServeSectionData;
   'bulk-windows': BulkWindowsSectionData;
+  'problems-solutions'?: {
+    title?: string;
+    subtitle?: string;
+    badge?: string;
+    [key: string]: any;
+  };
   technician: TechnicianSectionData;
   faq: FAQSectionData;
   contact: ContactSectionData;
+  [key: string]: any;
 }
 
 export interface AdminDataResponse {
