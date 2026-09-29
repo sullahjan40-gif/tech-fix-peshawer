@@ -5144,9 +5144,16 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  // On Vercel, the platform starts the server — app.listen is not needed and causes conflicts.
+  // Locally (npm run dev) and on Railway, VERCEL is not set, so it runs normally.
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  }
 }
 
 startServer();
+
+// Export Express app for Vercel serverless handler (api/index.ts)
+export default app;
