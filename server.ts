@@ -5153,7 +5153,14 @@ async function startServer() {
   }
 }
 
-startServer();
+// On Vercel: skip startServer() entirely.
+// - loadDb() already ran at module load (line 2238) — data is ready.
+// - Vercel serves static files from dist/ automatically via vercel.json.
+// - app.listen is not needed (Vercel starts the function per request).
+// On local dev and Railway: run full startup as before.
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 // Export Express app for Vercel serverless handler (api/index.ts)
 export default app;

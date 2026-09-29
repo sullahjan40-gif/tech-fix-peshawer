@@ -77,13 +77,31 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
           setCachedAdminToken(token);
 
           // Authoritative server-side verification (FR-001, FR-002)
-          const res = await fetch('/api/admin/verify-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
+          // 15-second timeout prevents infinite spinner on Vercel cold start
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
+          let res: Response;
+          try {
+            res = await fetch('/api/admin/verify-token', {
+              method: 'POST',
+              signal: controller.signal,
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+              }
+            });
+            clearTimeout(timeoutId);
+          } catch (fetchErr: any) {
+            clearTimeout(timeoutId);
+            setIsAdminAuthorized(false);
+            if (fetchErr?.name === 'AbortError') {
+              setAuthError('Server is starting up — please wait 5 seconds and try again.');
+            } else {
+              setAuthError('Unable to reach server. Check your connection and try again.');
             }
-          });
+            setLoading(false);
+            return;
+          }
 
           if (res.ok) {
             const data = await res.json();
@@ -102,6 +120,7 @@ export const AdminProtectedRoute: React.FC<AdminProtectedRouteProps> = ({
           console.error('Admin token verification error:', e);
           setIsAdminAuthorized(false);
           setAuthError('Unable to verify administrator session.');
+
         }
       } else {
         clearCachedAdminToken();
