@@ -4,16 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "vercel-build": "vite build",
-    "start": "node dist/server.cjs",
+    "dev": "next dev",
+    "dev:server": "tsx server.ts",
+    "build": "next build",
+    "build:server": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "next start",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "clean": "rm -rf dist server.js .next",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
@@ -23,7 +26,9 @@
     "firebase-functions": "^7.3.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "next": "^16.3.7",
     "nodemailer": "^10.0.3",
+    "postcss": "^8.5.28",
     "react": "^19.0.1",
     "react-dom": "^19.0.1"
   },

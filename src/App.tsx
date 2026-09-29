@@ -29,18 +29,18 @@ import {
 } from './lib/firebase';
 import { onSnapshot, doc, getDocs, getDoc } from 'firebase/firestore';
 
-// Dedicated Separate Pages
-import { HomePage } from './pages/HomePage';
-import { ServicesPage } from './pages/ServicesPage';
-import { HowItWorksPage } from './pages/HowItWorksPage';
-import { WhyOnSitePage } from './pages/WhyOnSitePage';
-import { WhoWeServePage } from './pages/WhoWeServePage';
-import { BulkWindowsPage } from './pages/BulkWindowsPage';
-import { AboutPage } from './pages/AboutPage';
-import { ProblemsSolutionsPage } from './pages/ProblemsSolutionsPage';
-import { FAQPage } from './pages/FAQPage';
-import { ContactPage } from './pages/ContactPage';
-import { TrackRequestPage } from './pages/TrackRequestPage';
+// Dedicated Separate Pages (renamed from ./pages/ to ./views/ — Phase 2 Next.js migration)
+import { HomePage } from './views/HomePage';
+import { ServicesPage } from './views/ServicesPage';
+import { HowItWorksPage } from './views/HowItWorksPage';
+import { WhyOnSitePage } from './views/WhyOnSitePage';
+import { WhoWeServePage } from './views/WhoWeServePage';
+import { BulkWindowsPage } from './views/BulkWindowsPage';
+import { AboutPage } from './views/AboutPage';
+import { ProblemsSolutionsPage } from './views/ProblemsSolutionsPage';
+import { FAQPage } from './views/FAQPage';
+import { ContactPage } from './views/ContactPage';
+import { TrackRequestPage } from './views/TrackRequestPage';
 
 import { MessageSquare, Calendar } from 'lucide-react';
 
